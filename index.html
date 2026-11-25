@@ -1,0 +1,2373 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Catified — Kedi Macerası 🐱</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+:root{
+  --pink:#FF6B9D;--pink-light:#FFB3D1;--pink-pale:#FFF0F7;
+  --yellow:#FFD93D;--yellow-light:#FFF3B0;
+  --navy:#1A1A4E;--navy-mid:#2D2D7A;--navy-light:#4A4AAA;
+  --white:#FFFFFF;--cream:#FFFEF5;
+  --green:#4CAF50;--red:#FF4757;--orange:#FF8C42;
+}
+body{font-family:'Nunito',sans-serif;background:var(--cream);overflow:hidden;width:100vw;height:100vh;touch-action:none;cursor:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' style='font-size:24px'><text y='24'>🐾</text></svg>"), auto;}
+button, a, .btn, .level-node, .hole, .ctrl-btn, .falling-food, .target-word {
+  cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' style='font-size:24px'><text y='24'>🐾</text></svg>"), pointer !important;
+}
+
+/* ===== SCREENS ===== */
+.screen{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;}
+.screen.active{display:flex;}
+
+/* ===== BACKGROUND STARS ===== */
+.bg-stars{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
+.star{position:absolute;border-radius:50%;background:var(--yellow);animation:twinkle 2s infinite alternate;}
+@keyframes twinkle{0%{opacity:.3;transform:scale(1);}100%{opacity:1;transform:scale(1.4);}}
+
+/* ===== TITLE SCREEN ===== */
+#screen-title{background:linear-gradient(160deg,var(--pink-pale) 0%,var(--yellow-light) 50%,var(--pink-pale) 100%);z-index:10;}
+.title-card{background:var(--white);border-radius:32px;padding:2rem 2.5rem;text-align:center;box-shadow:0 8px 40px rgba(255,107,157,0.25);max-width:420px;width:90%;position:relative;z-index:2;}
+.title-cat{font-size:80px;animation:float 3s ease-in-out infinite;}
+@keyframes float{0%,100%{transform:translateY(0);}50%{transform:translateY(-12px);}}
+.title-main{font-family:'Fredoka One',cursive;font-size:2.4rem;color:var(--navy);line-height:1.1;margin-bottom:.3rem;}
+.title-sub{font-family:'Fredoka One',cursive;font-size:1.2rem;color:var(--pink);margin-bottom:1.5rem;}
+.btn{font-family:'Fredoka One',cursive;border:none;border-radius:50px;cursor:pointer;transition:transform .15s,box-shadow .15s;display:inline-flex;align-items:center;gap:8px;justify-content:center;}
+.btn:active{transform:scale(.94);}
+.btn-primary{background:linear-gradient(135deg,var(--pink),#FF8EC7);color:var(--white);font-size:1.1rem;padding:.75rem 2rem;box-shadow:0 4px 20px rgba(255,107,157,0.4);}
+.btn-secondary{background:linear-gradient(135deg,var(--yellow),#FFB347);color:var(--navy);font-size:1rem;padding:.65rem 1.5rem;box-shadow:0 4px 16px rgba(255,217,61,0.4);}
+.btn-navy{background:linear-gradient(135deg,var(--navy-mid),var(--navy-light));color:var(--white);font-size:1rem;padding:.65rem 1.5rem;}
+.btn-sm{font-size:.85rem;padding:.5rem 1.1rem;}
+.btn-danger{background:linear-gradient(135deg,#FF4757,#FF6B81);color:var(--white);font-size:.9rem;padding:.55rem 1.2rem;}
+.save-slots{display:flex;flex-direction:column;gap:.6rem;margin:1rem 0;}
+.save-slot{background:var(--pink-pale);border:2px solid var(--pink-light);border-radius:16px;padding:.7rem 1rem;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:border-color .2s;}
+.save-slot:hover{border-color:var(--pink);}
+.save-slot-info{text-align:left;}
+.save-slot-info .slot-name{font-weight:700;color:var(--navy);font-size:.9rem;}
+.save-slot-info .slot-detail{color:var(--pink);font-size:.78rem;}
+.slot-actions{display:flex;gap:.4rem;}
+.title-btns{display:flex;flex-direction:column;gap:.7rem;width:100%;}
+.sep{display:flex;align-items:center;gap:.5rem;margin:.3rem 0;color:#aaa;font-size:.8rem;}
+.sep::before,.sep::after{content:'';flex:1;height:1px;background:#eee;}
+
+/* ===== MAP SCREEN ===== */
+#screen-map{background:linear-gradient(160deg,#FFF0F7 0%,#FFF8DC 60%,#E8F4FD 100%);z-index:10;}
+.map-container{position:relative;z-index:2;width:min(500px,95vw);}
+.map-title{font-family:'Fredoka One',cursive;font-size:1.8rem;color:var(--navy);text-align:center;margin-bottom:1rem;}
+.map-subtitle{text-align:center;color:var(--pink);font-size:.9rem;margin-bottom:1.2rem;font-weight:600;}
+.map-svg-wrap{position:relative;width:100%;}
+.map-top-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:.8rem;}
+.progress-bar-wrap{flex:1;background:#f0e6ff;border-radius:20px;height:12px;margin:0 .8rem;overflow:hidden;}
+.progress-bar-fill{height:100%;background:linear-gradient(90deg,var(--pink),var(--yellow));border-radius:20px;transition:width .5s;}
+.map-path{display:flex;flex-direction:column;align-items:center;gap:.5rem;padding:1rem;}
+.path-row{display:flex;align-items:center;gap:0;}
+.level-node{width:70px;height:70px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;position:relative;transition:transform .2s,box-shadow .2s;flex-shrink:0;}
+.level-node:hover{transform:scale(1.08);}
+.level-node.locked{background:linear-gradient(135deg,#ddd,#bbb);cursor:not-allowed;box-shadow:0 4px 12px rgba(0,0,0,.15);}
+.level-node.unlocked{background:linear-gradient(135deg,var(--yellow),#FFB347);box-shadow:0 6px 20px rgba(255,217,61,.5);}
+.level-node.completed{background:linear-gradient(135deg,var(--pink),#FF8EC7);box-shadow:0 6px 20px rgba(255,107,157,.5);}
+.level-node.current{background:linear-gradient(135deg,var(--navy-mid),var(--navy-light));box-shadow:0 6px 24px rgba(45,45,122,.5);animation:pulse-node 2s infinite;}
+@keyframes pulse-node{0%,100%{box-shadow:0 6px 24px rgba(45,45,122,.5);}50%{box-shadow:0 6px 32px rgba(45,45,122,.8);}}
+.level-node .node-emoji{font-size:1.6rem;}
+.level-node .node-num{font-family:'Fredoka One',cursive;font-size:.7rem;color:var(--white);text-shadow:0 1px 3px rgba(0,0,0,.3);}
+.level-node .star-row{display:flex;gap:1px;}
+.level-node .node-star{font-size:.6rem;}
+.path-connector{width:40px;height:4px;border-radius:2px;}
+.path-connector.done{background:linear-gradient(90deg,var(--pink),var(--yellow));}
+.path-connector.locked{background:#ddd;}
+.path-connector.vert{width:4px;height:30px;border-radius:2px;}
+.level-labels{display:grid;grid-template-columns:repeat(3,1fr);gap:.3rem;margin-top:.5rem;}
+.level-label{text-align:center;font-size:.65rem;font-weight:700;color:var(--navy-mid);}
+.map-save-bar{display:flex;gap:.5rem;justify-content:center;margin-top:1rem;}
+
+/* ===== HUD ===== */
+.hud{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);padding:.5rem 1rem;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 12px rgba(255,107,157,.15);}
+.hud-left{display:flex;align-items:center;gap:.5rem;}
+.hud-title{font-family:'Fredoka One',cursive;color:var(--navy);font-size:1rem;}
+.hud-right{display:flex;gap:.4rem;align-items:center;}
+.hud-stat{background:var(--pink-pale);border-radius:20px;padding:.3rem .7rem;font-size:.8rem;font-weight:700;color:var(--navy);}
+.hud-stat span{color:var(--pink);}
+#hud-timer.warning span{color:var(--red);}
+
+/* ===== GAME SCREENS ===== */
+.game-screen{position:absolute;inset:0;display:none;flex-direction:column;overflow:hidden;}
+.game-screen.active{display:flex;}
+.game-area{flex:1;position:relative;overflow:hidden;}
+
+/* ===== RESULT OVERLAY ===== */
+/* ===== RESULT POPUP ===== */
+.rp-bg{position:fixed;inset:0;z-index:500;background:rgba(10,10,40,.82);display:none;align-items:center;justify-content:center;}
+.rp-bg.open{display:flex;}
+.rp-box{background:#fff;border-radius:28px;padding:2rem 1.6rem 1.6rem;text-align:center;max-width:340px;width:88%;box-shadow:0 12px 48px rgba(0,0,0,.35);animation:popIn .28s cubic-bezier(.34,1.56,.64,1) both;}
+@keyframes popIn{from{opacity:0;transform:scale(.7)}to{opacity:1;transform:scale(1)}}
+.rp-icon{font-size:4.5rem;line-height:1;margin-bottom:.4rem;}
+.rp-title{font-family:'Fredoka One',cursive;font-size:2rem;color:var(--navy);margin-bottom:.3rem;}
+.rp-stars{font-size:2rem;letter-spacing:.2rem;margin:.4rem 0;min-height:2.4rem;}
+.rp-msg{font-size:.9rem;color:#555;margin-bottom:1.2rem;line-height:1.5;}
+.rp-btns{display:flex;flex-direction:column;gap:.55rem;}
+.rp-btns button{width:100%;padding:.7rem 1rem;border:none;border-radius:14px;font-family:'Nunito',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;transition:transform .12s,filter .12s;}
+.rp-btns button:active{transform:scale(.96);filter:brightness(.92);}
+.rp-btn-next{background:linear-gradient(135deg,var(--pink),#e91e8c);color:#fff;font-size:1.05rem;}
+.rp-btn-reward{background:linear-gradient(135deg,#FFD700,#FFA000);color:#fff;}
+.rp-btn-replay{background:var(--pink-pale);color:var(--navy);}
+.rp-btn-menu{background:var(--navy);color:#fff;font-size:.88rem;}
+
+/* ===== LEVEL 1: FARE YAKALA ===== */
+#game-l1{background:linear-gradient(160deg,var(--pink-pale),var(--yellow-light));}
+.l1-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:1rem;width:100%;max-width:420px;margin:0 auto;flex:1;align-content:center;}
+.hole{background:var(--white);border:3px solid var(--pink-light);border-radius:50%;aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:2.2rem;cursor:pointer;transition:transform .1s;position:relative;overflow:hidden;box-shadow:inset 0 3px 8px rgba(0,0,0,.08);}
+.hole:active{transform:scale(.92);}
+.hole.has-mouse{background:var(--yellow-light);border-color:var(--yellow);}
+.hole .hole-inner{font-size:2rem;transition:transform .2s;transform:translateY(40px);}
+.hole.has-mouse .hole-inner{transform:translateY(0);}
+.l1-info{text-align:center;padding:.5rem;font-family:'Fredoka One',cursive;color:var(--navy);font-size:.95rem;}
+
+/* ===== LEVEL 2: KOŞU ===== */
+#game-l2{background:linear-gradient(160deg,#E8F8FF,#FFF8DC);}
+.race-track{flex:1;position:relative;overflow:hidden;}
+.track-bg{position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent,transparent 40px,rgba(255,255,255,.4) 40px,rgba(255,255,255,.4) 42px);}
+.racer{position:absolute;display:flex;flex-direction:column;align-items:center;font-size:2.8rem;transition:left .1s linear;}
+.racer-label{font-size:.65rem;font-weight:700;background:var(--white);border-radius:10px;padding:1px 6px;color:var(--navy);}
+.finish-line{position:absolute;top:0;bottom:0;right:10px;width:6px;background:repeating-linear-gradient(180deg,#000 0,#000 10px,#fff 10px,#fff 20px);}
+.tap-btn{position:absolute;bottom:1.5rem;left:50%;transform:translateX(-50%);width:130px;height:130px;border-radius:50%;background:linear-gradient(135deg,var(--pink),#FF8EC7);border:none;font-family:'Fredoka One',cursive;color:var(--white);font-size:1.1rem;box-shadow:0 6px 24px rgba(255,107,157,.5);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:0;flex-direction:column;}
+.tap-btn:active{transform:translateX(-50%) scale(.9);}
+.tap-count{font-size:.75rem;opacity:.8;}
+.speed-bars{position:absolute;top:8px;left:8px;right:8px;display:flex;flex-direction:column;gap:4px;}
+.speed-bar-row{display:flex;align-items:center;gap:6px;font-size:.72rem;font-weight:700;color:var(--navy);}
+.speed-bar-bg{flex:1;background:rgba(255,255,255,.7);border-radius:4px;height:8px;overflow:hidden;}
+.speed-bar-fill{height:100%;border-radius:4px;transition:width .2s;}
+
+/* ===== LEVEL 3: MAMA YAKALA ===== */
+#game-l3{background:linear-gradient(160deg,#FFF0F7,#FFF8DC);}
+.l3-player{position:absolute;bottom:20px;font-size:3rem;transition:left .08s;}
+.food-item{position:absolute;font-size:1.8rem;transition:top .05s linear;}
+.l3-controls{position:absolute;bottom:1rem;left:0;right:0;display:flex;justify-content:space-around;padding:0 2rem;}
+.ctrl-btn{width:70px;height:70px;border-radius:50%;border:none;font-size:1.8rem;background:rgba(255,255,255,.85);box-shadow:0 4px 14px rgba(255,107,157,.25);cursor:pointer;}
+.ctrl-btn:active{transform:scale(.88);}
+.l3-basket{position:absolute;bottom:0;font-size:1.8rem;}
+
+/* ===== LEVEL 4: 3-LANE FOOD GAME ===== */
+#game-l4{background:linear-gradient(160deg,#FFF0F5,#FFE4E1,#FFF8DC);}
+.l4-score-row{display:flex;gap:1rem;justify-content:center;padding:.4rem;font-size:.85rem;font-weight:700;}
+.l4-score-good{color:#E8497A;}
+.l4-score-bad{color:#c0392b;}
+.l4-lanes-wrap{flex:1;display:flex;flex-direction:column;gap:4px;padding:4px 8px;position:relative;overflow:hidden;}
+.l4-lane{flex:1;position:relative;background:rgba(255,200,220,0.18);border-radius:12px;overflow:hidden;display:flex;align-items:center;border:1.5px solid rgba(255,160,200,0.25);}
+.l4-lane-line{position:absolute;left:13%;top:0;bottom:0;width:2px;background:rgba(255,100,160,0.18);z-index:1;pointer-events:none;}
+.l4-hit-zone{position:absolute;left:10%;top:50%;transform:translateY(-50%);z-index:5;}
+.l4-hit-btn{width:46px;height:46px;border-radius:50%;border:none;font-size:1.4rem;background:linear-gradient(135deg,#FF6EB0,#FF3E7F);color:white;cursor:pointer;box-shadow:0 2px 12px rgba(255,62,127,0.45);transition:transform .12s,box-shadow .12s;display:flex;align-items:center;justify-content:center;}
+.l4-hit-btn:active{transform:scale(.85);box-shadow:0 1px 6px rgba(255,62,127,0.2);}
+.l4-hit-btn.hidden{opacity:0;pointer-events:none;}
+.l4-food-item{position:absolute;top:50%;transform:translateY(-50%);font-size:2rem;pointer-events:none;user-select:none;transition:none;z-index:10;will-change:left;}
+.l4-food-item.bad-food{filter:drop-shadow(0 0 6px rgba(255,50,50,0.7));}
+.l4-cat-strip{display:flex;justify-content:space-around;align-items:center;padding:.2rem .5rem;font-size:1.6rem;background:rgba(255,230,240,0.6);border-radius:10px;margin:0 8px 4px;}
+
+/* ===== LEVEL 5: KELİME AVLAMA ===== */
+#game-l5{background:linear-gradient(160deg,#F0F4FF,var(--pink-pale));}
+.l5-text-area{flex:1;overflow-y:auto;padding:1rem;font-size:1rem;line-height:2.2;color:var(--navy);}
+.target-word{display:inline-block;padding:0;border-radius:4px;cursor:pointer;font-weight:inherit;}
+.target-word.pink-kw{background:transparent;color:inherit;cursor:pointer;}
+.target-word.found{background:var(--green);color:var(--white);text-decoration:line-through;cursor:default;transform:scale(.95);transition:all .2s;font-weight:700;}
+.l5-progress{display:flex;gap:.3rem;flex-wrap:wrap;padding:.3rem 1rem;}
+.kw-badge{font-size:.72rem;padding:2px 8px;border-radius:10px;font-weight:700;}
+.kw-badge.pink-kw{background:var(--pink-pale);color:var(--pink);}
+.kw-badge.done-kw{background:var(--green);color:var(--white);}
+
+/* ===== LEVEL 6: BOSS FIGHT ===== */
+#game-l6{background:linear-gradient(160deg,#1A1A4E,#2D2D7A,#4A1A6E);}
+.boss-area{display:flex;flex-direction:column;align-items:center;flex:1;padding:1rem;gap:.6rem;}
+.hp-bars{width:100%;max-width:380px;display:flex;flex-direction:column;gap:.4rem;}
+.hp-row{display:flex;align-items:center;gap:.5rem;}
+.hp-label{font-family:'Fredoka One',cursive;font-size:.8rem;min-width:80px;}
+.hp-label.player-lbl{color:var(--yellow);}
+.hp-label.boss-lbl{color:var(--pink);}
+.hp-bar-bg{flex:1;background:rgba(255,150,190,.25);border-radius:8px;height:16px;overflow:hidden;border:1px solid rgba(255,130,180,.3);}
+.hp-bar-fill{height:100%;border-radius:8px;transition:width .4s;}
+.hp-bar-fill.player-hp{background:linear-gradient(90deg,#FF85C2,#FFB3D9,#FF85C2);background-size:200%;animation:hp-shimmer 2s linear infinite;}
+.hp-bar-fill.boss-hp{background:linear-gradient(90deg,#C2185B,#F06292,#C2185B);background-size:200%;animation:hp-shimmer 2s linear infinite;}
+@keyframes hp-shimmer{0%{background-position:0%}100%{background-position:200%}}
+.hp-val{font-size:.78rem;font-weight:800;min-width:40px;text-align:right;}
+.hp-val.player-v{color:#FFB3D9;}
+.hp-val.boss-v{color:#F06292;}
+.boss-sprite{font-size:5rem;animation:boss-float 2s ease-in-out infinite;text-shadow:0 0 20px rgba(255,107,157,.5);}
+@keyframes boss-float{0%,100%{transform:translateY(0) rotate(-3deg);}50%{transform:translateY(-10px) rotate(3deg);}}
+.combat-log{background:rgba(255,255,255,.08);border-radius:12px;padding:.4rem .7rem;font-size:.75rem;color:rgba(255,255,255,.8);max-width:380px;width:100%;min-height:40px;text-align:center;}
+.battle-bar-area{width:100%;max-width:380px;position:relative;height:56px;background:rgba(255,180,220,.18);border-radius:12px;overflow:hidden;border:1.5px solid rgba(255,100,160,0.3);}
+.battle-bar-track{position:absolute;top:50%;transform:translateY(-50%);left:8px;right:8px;height:16px;background:rgba(255,255,255,.15);border-radius:8px;}
+.battle-zone{position:absolute;top:50%;transform:translateY(-50%);height:16px;border-radius:6px;}
+.battle-zone.perfect{background:linear-gradient(90deg,var(--yellow),#FFD700);opacity:.9;}
+.battle-zone.good{background:rgba(255,255,255,.3);}
+.battle-cursor{position:absolute;top:50%;transform:translateY(-50%);width:10px;height:32px;background:var(--white);border-radius:4px;box-shadow:0 0 8px rgba(255,255,255,.8);transition:left .02s linear;}
+.battle-btn{width:100%;max-width:380px;padding:1rem;border-radius:16px;border:none;background:linear-gradient(135deg,var(--pink),#FF4757);font-family:'Fredoka One',cursive;color:var(--white);font-size:1.2rem;cursor:pointer;box-shadow:0 4px 20px rgba(255,107,157,.4);}
+.battle-btn:active{transform:scale(.96);}
+.battle-dmg{position:absolute;font-family:'Fredoka One',cursive;font-size:1.4rem;pointer-events:none;animation:dmg-float 1s ease-out forwards;z-index:10;}
+@keyframes dmg-float{0%{opacity:1;transform:translateY(0);}100%{opacity:0;transform:translateY(-40px);}}
+.boss-attack-overlay{position:absolute;inset:0;background:rgba(255,71,87,.3);pointer-events:none;opacity:0;transition:opacity .1s;}
+.boss-attack-overlay.flash{opacity:1;}
+
+/* ===== REWARD SCREEN ===== */
+#screen-reward{background:linear-gradient(160deg,var(--navy),#2D2D7A,#4A1A6E);z-index:10;overflow-y:auto;padding:1rem;}
+.reward-card{background:var(--white);border-radius:28px;padding:2rem;max-width:380px;width:90%;text-align:center;box-shadow:0 12px 50px rgba(0,0,0,.4);max-height:92vh;overflow-y:auto;}
+.reward-title{font-family:'Fredoka One',cursive;font-size:2rem;color:var(--navy);margin-bottom:.4rem;}
+.reward-cat{font-size:4rem;animation:float 2s ease-in-out infinite;}
+.reward-confetti{display:flex;flex-wrap:wrap;justify-content:center;gap:.3rem;font-size:1.2rem;margin:.8rem 0;}
+.reward-links{display:flex;flex-direction:column;gap:.6rem;margin:1rem 0;}
+.reward-link-btn{display:block;padding:.7rem 1.2rem;border-radius:14px;text-decoration:none;font-weight:700;font-size:.9rem;transition:transform .15s;}
+.reward-link-btn:active{transform:scale(.96);}
+.reward-link-btn.custom{background:linear-gradient(135deg,var(--pink),#FF8EC7);color:var(--white);}
+.reward-link-btn.house{background:linear-gradient(135deg,#7C3AED,#A855F7);color:var(--white);}
+.reward-summary{font-family:'Fredoka One',cursive;color:var(--pink);font-size:1.1rem;margin-bottom:.2rem;}
+
+/* ===== MODAL ===== */
+.modal-bg{position:fixed;inset:0;z-index:300;background:rgba(26,26,78,.8);display:none;align-items:center;justify-content:center;}
+.modal-bg.active{display:flex;}
+.modal{background:var(--white);border-radius:24px;padding:1.5rem;max-width:340px;width:88%;text-align:center;}
+.modal h3{font-family:'Fredoka One',cursive;color:var(--navy);font-size:1.4rem;margin-bottom:.8rem;}
+.modal-btns{display:flex;gap:.6rem;justify-content:center;margin-top:1rem;flex-wrap:wrap;}
+.name-input{width:100%;padding:.6rem 1rem;border-radius:12px;border:2px solid var(--pink-light);font-family:'Nunito',sans-serif;font-size:1rem;color:var(--navy);outline:none;margin:.5rem 0;}
+.name-input:focus{border-color:var(--pink);}
+
+/* ===== TOAST ===== */
+.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(60px);background:var(--navy);color:var(--white);padding:.6rem 1.4rem;border-radius:20px;font-size:.85rem;font-weight:600;z-index:400;transition:transform .3s;white-space:nowrap;}
+.toast.show{transform:translateX(-50%) translateY(0);}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:480px){
+  .title-card{padding:1.4rem 1.2rem;}
+  .title-cat{font-size:60px;}
+  .title-main{font-size:1.9rem;}
+  .l1-grid{gap:6px;padding:.6rem;}
+  .hole{font-size:1.8rem;}
+}
+@media(min-width:600px){
+  .l1-grid{gap:12px;padding:1.5rem;}
+}
+</style>
+</head>
+<body>
+
+<!-- BG Stars -->
+<div class="bg-stars" id="bgStars"></div>
+
+<!-- ===== TITLE SCREEN ===== -->
+<div class="screen active" id="screen-title">
+  <div class="title-card">
+    <div class="title-cat">🐱</div>
+    <div class="title-main">Kedi<br>Macerası</div>
+    <div class="title-sub">✨ 10 Bölüm, Bol Eğlence ✨</div>
+    <div class="title-btns">
+      <button class="btn btn-primary" onclick="showNewGameModal()">🎮 Yeni Oyun</button>
+      <button class="btn btn-secondary" onclick="showLoadModal()">💾 Kayıt Yükle</button>
+      <div class="sep">ya da</div>
+      <button class="btn btn-navy btn-sm" onclick="showMap()">🗺️ Haritaya Git</button>
+      <button class="btn btn-primary" id="btn-hayali" style="background:linear-gradient(135deg,#7C3AED,#A855F7);margin-top:.5rem;display:none" onclick="showScreen('screen-hayali');initHayali();">🏡 Hayal Evim</button>
+      <button class="btn btn-secondary" id="btn-rewards" style="display:none" onclick="showReward()">🎁 Ödüllerim</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MAP SCREEN ===== -->
+<div class="screen" id="screen-map">
+  <div class="map-container">
+    <div class="map-title">🗺️ Macera Haritası</div>
+    <div class="map-top-bar">
+      <span style="font-size:.85rem;font-weight:700;color:var(--navy)">🐱 <span id="map-player-name">Oyuncu</span></span>
+      <div class="progress-bar-wrap"><div class="progress-bar-fill" id="map-progress-fill" style="width:0%"></div></div>
+      <span style="font-size:.85rem;font-weight:700;color:var(--pink)" id="map-star-count">⭐0</span>
+    </div>
+    <div class="map-path" id="map-path"></div>
+    <div class="map-save-bar">
+      <button class="btn btn-secondary btn-sm" onclick="saveGame()">💾 Kaydet</button>
+      <button class="btn btn-navy btn-sm" onclick="showScreen('screen-title')">🏠 Ana Menü</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== HUD ===== -->
+<div class="hud" id="hud" style="display:none">
+  <div class="hud-left">
+    <button class="btn btn-navy btn-sm" onclick="exitToMenu()" title="Ana Menü">🏠</button>
+    <span class="hud-title" id="hud-level-name">Bölüm 1</span>
+  </div>
+  <div class="hud-right">
+    <div class="hud-stat" id="hud-timer">⏱ <span id="timer-val">60</span>s</div>
+    <div class="hud-stat" id="hud-score">⭐ <span id="score-val">0</span></div>
+  </div>
+</div>
+
+
+
+<!-- ===== LEVEL 1: FARE YAKALA ===== -->
+<div class="game-screen" id="game-l1">
+  <div style="height:56px"></div>
+  <div class="l1-info">🐭 Fareleri yakala! <span id="l1-caught">0</span>/20</div>
+  <div class="l1-grid" id="l1-grid"></div>
+</div>
+
+<!-- ===== LEVEL 2: KOŞU ===== -->
+<div class="game-screen" id="game-l2">
+  <div style="height:56px"></div>
+  <div class="race-track" id="race-track">
+    <div class="track-bg"></div>
+    <div class="speed-bars" id="speed-bars">
+      <div class="speed-bar-row">
+        <span>🐱 <span class="cat-name">Pamuk</span></span>
+        <div class="speed-bar-bg"><div class="speed-bar-fill" id="p1-bar" style="width:0%;background:linear-gradient(90deg,var(--pink),#FF8EC7)"></div></div>
+        <span id="p1-speed">0</span>
+      </div>
+      <div class="speed-bar-row">
+        <span>🐈‍⬛ Rakip</span>
+        <div class="speed-bar-bg"><div class="speed-bar-fill" id="p2-bar" style="width:0%;background:linear-gradient(90deg,var(--navy-light),var(--navy-mid))"></div></div>
+        <span id="p2-speed">0</span>
+      </div>
+    </div>
+    <div class="finish-line"></div>
+    <div id="l2-player" class="racer" style="bottom:55%;left:2%">🐱<div class="racer-label cat-name">Pamuk</div></div>
+    <div id="l2-rival" class="racer" style="bottom:25%;left:2%">🐈‍⬛<div class="racer-label">Rakip</div></div>
+    <button class="tap-btn" id="tap-btn" onclick="tapRace(event)" ontouchstart="tapRace(event)">
+      <span style="font-size:1.6rem">👆</span>
+      TAP!
+      <span class="tap-count" id="tap-count">0 kez</span>
+    </button>
+  </div>
+</div>
+
+<!-- ===== LEVEL 3: MAMA YAKALA ===== -->
+<div class="game-screen" id="game-l3">
+  <div style="height:56px"></div>
+  <div class="game-area" id="l3-area">
+    <div id="l3-player" class="l3-player" style="left:50%;transform:translateX(-50%)">🐱</div>
+  </div>
+  <div class="l3-controls">
+    <button class="ctrl-btn" id="l3-left" ontouchstart="l3StartMove(-1)" ontouchend="l3StopMove()" ontouchcancel="l3StopMove()" onmousedown="l3StartMove(-1)" onmouseup="l3StopMove()" onmouseleave="l3StopMove()">◀</button>
+    <div style="font-size:.8rem;font-weight:700;color:var(--navy);text-align:center">
+      Yakalanan: <span id="l3-caught">0</span><br>
+      Düşen: <span id="l3-missed">0</span>
+    </div>
+    <button class="ctrl-btn" id="l3-right" ontouchstart="l3StartMove(1)" ontouchend="l3StopMove()" ontouchcancel="l3StopMove()" onmousedown="l3StartMove(1)" onmouseup="l3StopMove()" onmouseleave="l3StopMove()">▶</button>
+  </div>
+</div>
+
+<!-- ===== LEVEL 4: 3-LANE FOOD GAME ===== -->
+<div class="game-screen" id="game-l4">
+  <div style="height:56px"></div>
+  <div class="l4-score-row">
+    <span class="l4-score-good">😋 İyi: <span id="l4-good">0</span>/15</span>
+    <span class="l4-score-bad">☠️ Kötü Yenen: <span id="l4-bad">0</span>/5</span>
+  </div>
+  <div class="l4-cat-strip">
+    <span id="l4-cat-0">😺</span>
+    <span style="font-size:.75rem;font-weight:700;color:#E8497A">Kötü yemek gelince ✋ bas! (1/2/3)</span>
+    <span id="l4-cat-1">😺</span>
+  </div>
+  <div class="l4-lanes-wrap" id="l4-lanes-wrap">
+    <div class="l4-lane" id="l4-lane-0">
+      <div class="l4-lane-line"></div>
+      <div class="l4-hit-zone"><button class="l4-hit-btn hidden" id="l4-btn-0" onclick="l4HitLane(0)">✋</button></div>
+    </div>
+    <div class="l4-lane" id="l4-lane-1">
+      <div class="l4-lane-line"></div>
+      <div class="l4-hit-zone"><button class="l4-hit-btn hidden" id="l4-btn-1" onclick="l4HitLane(1)">✋</button></div>
+    </div>
+    <div class="l4-lane" id="l4-lane-2">
+      <div class="l4-lane-line"></div>
+      <div class="l4-hit-zone"><button class="l4-hit-btn hidden" id="l4-btn-2" onclick="l4HitLane(2)">✋</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== LEVEL 5: KELİME AVLAMA ===== -->
+<div class="game-screen" id="game-l5">
+  <div style="height:56px"></div>
+  <div style="padding:.5rem 1rem .2rem;font-size:.8rem;font-weight:700;color:var(--navy-mid)">
+    Gizli kelimeleri bul ve tıkla! Kalan: <span id="l5-remaining">0</span>
+  </div>
+  <div class="l5-progress" id="l5-kw-progress"></div>
+  <div class="l5-text-area" id="l5-text"></div>
+</div>
+
+<!-- ===== LEVEL 6: YÜN TOPU AVI ===== -->
+<div class="game-screen" id="game-l6">
+  <div style="height:56px"></div>
+  <div style="text-align:center;padding:.4rem;font-size:.85rem;font-weight:700;color:var(--navy)">
+    Yakalanan: <span id="l6-caught">0</span>/25 &nbsp;|&nbsp; WASD, fare ya da parmağınla hareket et!
+  </div>
+  <div class="game-area" id="l6-area" style="position:relative;overflow:hidden;touch-action:none;">
+    <div id="l6-player" style="position:absolute;font-size:2.4rem;user-select:none;transition:left .05s,top .05s;z-index:10">🐱</div>
+  </div>
+</div>
+
+<!-- ===== LEVEL 7: RİTİM OYUNU ===== -->
+<div class="game-screen" id="game-l7">
+  <div style="height:56px"></div>
+  <div style="text-align:center;padding:.3rem;font-size:.85rem;font-weight:700;color:var(--navy)">
+    Yakalanan: <span id="l7-caught">0</span>/20 &nbsp;|&nbsp; Klavye: A / S / D
+  </div>
+  <div id="l7-area" style="position:relative;flex:1;overflow:hidden;background:linear-gradient(180deg,#1a1a4e,#2d1b69)">
+    <div id="l7-notes-container" style="position:absolute;inset:0"></div>
+    <div id="l7-hit-zones" style="position:absolute;bottom:12px;left:0;right:0;display:flex;justify-content:space-around;padding:0 1rem">
+      <div class="l7-zone" id="l7-zone-0" onclick="l7HitZone(0)">❤️</div>
+      <div class="l7-zone" id="l7-zone-1" onclick="l7HitZone(1)">🎵</div>
+      <div class="l7-zone" id="l7-zone-2" onclick="l7HitZone(2)">🐾</div>
+    </div>
+    <div id="l7-feedback" style="position:absolute;top:40%;left:50%;transform:translateX(-50%);font-family:'Fredoka One',cursive;font-size:2rem;color:#FFD700;opacity:0;transition:opacity .3s;pointer-events:none"></div>
+    <div id="l7-cat" style="position:absolute;bottom:80px;left:50%;transform:translateX(-50%);font-size:3rem;transition:transform .2s">🐱</div>
+  </div>
+</div>
+
+<!-- ===== LEVEL 8: ANI ALBÜMÜ ===== -->
+<div class="game-screen" id="game-l8">
+  <div style="height:56px"></div>
+  <div style="text-align:center;padding:.3rem;font-size:.85rem;font-weight:700;color:var(--navy)">
+    Eşleşen: <span id="l8-matched">0</span>/8 &nbsp;|&nbsp; <span id="l8-status">Kartları çevir!</span>
+  </div>
+  <div id="l8-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:.7rem;padding:.5rem 1rem;max-width:480px;margin:0 auto"></div>
+</div>
+
+<!-- ===== LEVEL 9: PLATFORMER ===== -->
+<div class="game-screen" id="game-l9">
+  <div style="height:56px"></div>
+  <div style="text-align:center;padding:.3rem;font-size:.85rem;font-weight:700;color:var(--navy)">
+    Kalpler: <span id="l9-hearts">0</span>/10 &nbsp;|&nbsp; <span id="l9-status">Selden kaç! 🌊</span>
+  </div>
+  <canvas id="l9-canvas" style="display:block;margin:0 auto;max-width:100%" width="360" height="360"></canvas>
+  <div style="display:flex;justify-content:center;gap:1rem;padding:.5rem">
+    <button class="ctrl-btn" id="l9-left" style="touch-action:none" onpointerdown="l9Keys.left=true" onpointerup="l9Keys.left=false" onpointerleave="l9Keys.left=false" onpointercancel="l9Keys.left=false">◀</button>
+    <button class="ctrl-btn" id="l9-jump" style="touch-action:none" onpointerdown="l9Keys.up=true" onpointerup="l9Keys.up=false" onpointerleave="l9Keys.up=false" onpointercancel="l9Keys.up=false">⬆️</button>
+    <button class="ctrl-btn" id="l9-right" style="touch-action:none" onpointerdown="l9Keys.right=true" onpointerup="l9Keys.right=false" onpointerleave="l9Keys.right=false" onpointercancel="l9Keys.right=false">▶</button>
+  </div>
+</div>
+
+<!-- ===== LEVEL 10: BOSS FIGHT ===== -->
+<div class="game-screen" id="game-l10">
+  <div style="height:56px"></div>
+  <div class="boss-area">
+    <div class="hp-bars">
+      <div class="hp-row">
+        <span class="hp-label player-lbl">🐱 <span class="cat-name">Pamuk</span></span>
+        <div class="hp-bar-bg"><div class="hp-bar-fill player-hp" id="player-hp-bar" style="width:100%"></div></div>
+        <span class="hp-val player-v" id="player-hp-val">100</span>
+      </div>
+      <div class="hp-row">
+        <span class="hp-label boss-lbl">👁️ Nazar</span>
+        <div class="hp-bar-bg"><div class="hp-bar-fill boss-hp" id="boss-hp-bar" style="width:100%"></div></div>
+        <span class="hp-val boss-v" id="boss-hp-val">100</span>
+      </div>
+    </div>
+    <div class="battle-arena" style="display:flex; justify-content:space-around; align-items:center; width:100%; max-width:380px; margin: 1rem 0;">
+      <div class="player-sprite" id="player-sprite" style="font-size: 5rem; transition: transform 0.2s; filter: drop-shadow(0 0 10px rgba(255,217,61,0.5));">🐱</div>
+      <div class="vs-text" style="font-family:'Fredoka One',cursive; color:var(--pink); font-size: 1.5rem;">VS</div>
+      <div class="boss-sprite" id="boss-sprite" style="font-size: 5rem; animation: boss-float 2s ease-in-out infinite; transition: transform 0.2s;">🧿</div>
+    </div>
+    <div class="combat-log" id="combat-log">Savaşa hazır ol! 🐱⚔️</div>
+    <div class="battle-bar-area" id="battle-bar-area">
+      <div class="battle-bar-track">
+        <div class="battle-zone good" id="battle-zone-good" style="left:20%;width:60%"></div>
+        <div class="battle-zone perfect" id="battle-zone-perfect" style="left:40%;width:20%"></div>
+      </div>
+      <div class="battle-cursor" id="battle-cursor" style="left:10%"></div>
+      <div class="boss-attack-overlay" id="boss-atk-overlay"></div>
+    </div>
+    <button class="battle-btn" id="battle-btn" onclick="battleStrike()">⚔️ SALDIRI!</button>
+  </div>
+</div>
+
+<!-- ===== REWARD SCREEN ===== -->
+<div class="screen" id="screen-reward">
+  <div class="reward-card">
+    <div class="reward-cat">🐱</div>
+    <div class="reward-title">Tebrikler! 🎉</div>
+    <p style="color:#666;font-size:.9rem;margin:.4rem 0 .8rem"><span class="cat-name">Pamuk</span> tüm maceraları tamamladı!</p>
+    <div class="reward-confetti">🌸🌟💝🎀✨🌷💖🎊🌸🌟💝🎀</div>
+    <div class="reward-links" id="reward-links"></div>
+    <div id="letter-section" style="display:none;margin-top:.8rem;padding:.8rem;background:var(--pink-pale);border-radius:14px;font-size:.82rem;color:var(--navy);line-height:1.7;text-align:left;max-height:200px;overflow-y:auto"></div>
+    <button class="btn btn-navy" style="width:100%;margin-top:.8rem" onclick="showScreen('screen-title')">🏠 Ana Menü</button>
+  </div>
+</div>
+
+<!-- ===== RESULT POPUP ===== -->
+<div class="rp-bg" id="rp-bg">
+  <div class="rp-box">
+    <div class="rp-icon" id="rp-icon">🎉</div>
+    <div class="rp-title" id="rp-title">Kazandın!</div>
+    <div class="rp-stars" id="rp-stars"></div>
+    <div class="rp-msg" id="rp-msg"></div>
+    <div class="rp-btns">
+      <button class="rp-btn-next" id="rp-btn-next">Sonraki Bölüm ➡️</button>
+      <button class="rp-btn-replay" id="rp-btn-replay">🔄 Tekrar Oyna</button>
+      <button class="rp-btn-menu" id="rp-btn-menu">🏠 Ana Menü</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SAVE MODAL ===== -->
+<div class="modal-bg" id="modal-new-game">
+  <div class="modal">
+    <h3>🐱 Yeni Oyun</h3>
+    <p style="font-size:.85rem;color:#888;margin-bottom:.5rem">Oyuncunun adını gir:</p>
+    <input class="name-input" id="new-game-name" placeholder="Adın nedir? 💕" maxlength="20" onkeydown="if(event.key==='Enter')startNewGame()">
+    <p style="font-size:.85rem;color:#888;margin:.4rem 0 .2rem">Kedinin adı:</p>
+    <input class="name-input" id="new-game-cat" placeholder="Pamuk 🐱" maxlength="16" onkeydown="if(event.key==='Enter')startNewGame()">
+    <div class="modal-btns">
+      <button class="btn btn-primary" onclick="startNewGame()">🎮 Başla!</button>
+      <button class="btn btn-navy btn-sm" onclick="closeModal('modal-new-game')">İptal</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-load">
+  <div class="modal">
+    <h3>💾 Kayıt Yükle</h3>
+    <div class="save-slots" id="load-slots"></div>
+    <div class="modal-btns">
+      <button class="btn btn-navy btn-sm" onclick="closeModal('modal-load')">İptal</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-save">
+  <div class="modal">
+    <h3>💾 Kaydet</h3>
+    <p style="font-size:.85rem;color:#888">Hangi slota kaydedelim?</p>
+    <div class="save-slots" id="save-slot-list"></div>
+    <div class="modal-btns">
+      <button class="btn btn-navy btn-sm" onclick="closeModal('modal-save')">İptal</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== INSTRUCTION MODAL ===== -->
+<div class="modal-bg" id="modal-instruction">
+  <div class="modal">
+    <h3 id="instruction-title">Bölüm X</h3>
+    <div style="font-size:3.5rem; margin:.6rem 0;" id="instruction-emoji">🐱</div>
+    <p id="instruction-text" style="font-size:.95rem;color:#444;margin-bottom:1.2rem;line-height:1.5;text-align:left;background:var(--pink-pale);padding:.8rem 1rem;border-radius:16px;border:1px solid var(--pink-light);"></p>
+    <div class="modal-btns">
+      <button class="btn btn-primary" onclick="confirmStartLevel()">Tamam, Başla! 🎮</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// =========================================
+// ===== CUSTOMIZE HERE (see README.md) =====
+// =========================================
+const CONFIG = {
+  defaultPlayerName: 'Kedisever',   // used when the player leaves the name empty
+  defaultCatName: 'Pamuk',          // used when the cat name is left empty
+  // Optional extra links shown on the final reward screen, e.g.
+  // { label: '🎵 Sürpriz Şarkı', url: 'https://example.com' }
+  rewardLinks: [],
+  // Optional message shown on the final reward screen. Leave '' to hide.
+  letter: ''
+};
+
+// ===== HELPERS =====
+const STEP = 1000/60; // fixed 60 Hz game tick (same speed on 60/120/144 Hz screens)
+function catName(){return (gameState&&gameState.catName)||CONFIG.defaultCatName;}
+function escapeHTML(v){return String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function applyCatName(){document.querySelectorAll('.cat-name').forEach(el=>el.textContent=catName());}
+function refreshTitleButtons(){
+  const done=(gameState.completedLevels||[]).includes(10);
+  if(done) gameState.hayaliUnlocked=true;
+  const h=document.getElementById('btn-hayali'); if(h) h.style.display=gameState.hayaliUnlocked?'':'none';
+  const r=document.getElementById('btn-rewards'); if(r) r.style.display=done?'':'none';
+}
+
+// ===== SAVE SYSTEM =====
+const SAVE_KEY = 'catified_save_';
+const MAX_SLOTS = 3;
+
+let gameState = {
+  playerName: CONFIG.defaultPlayerName,
+  catName: CONFIG.defaultCatName,
+  currentLevel: 1,
+  completedLevels: [],
+  stars: {},
+  totalStars: 0,
+  saveSlot: null,
+  lastSaved: null
+};
+
+const LEVELS = [
+  {id:1,  name:'Fare Avı 🐭',       emoji:'🐭', description:'45 saniyede 20 fare yakala!',     howToPlay:'Deliklerden çıkan yaramaz farelerin üzerine tıklayarak onları yakala! Süre (45 sn) dolmadan 20 fare yakalamalısın. 🐭'},
+  {id:2,  name:'Yarış 🏃',          emoji:'🏃', description:'Hızlı tıkla, rakibi geç!',        howToPlay:'Aşağıdaki büyük "TAP!" tuşuna (ya da Boşluk tuşuna) hızlı hızlı basarak kedini koştur! Rakibinden önce bitiş çizgisine ulaş. Saniyede ~4 tık yeterli. 🏃'},
+  {id:3,  name:'Mama Kazan 🍗',     emoji:'🍗', description:'Süre dolmadan 25 mama yakala!',   howToPlay:'Düşen mamaları yakala! Sol/Sağ butonlarla ya da klavyedeki yön tuşlarıyla (veya A/D) kedini hareket ettir. 30 saniyede 25 mama topla! 🍗'},
+  {id:4,  name:'Yemek Seç 🍽️',     emoji:'🍽️',description:'15 iyi yemek ye!',               howToPlay:'Sağdan sola akan yemeklerden kötü olanlar (kırmızı parlayanlar) ✋ bölgesine gelince o şeridin ✋ butonuna bas (klavye: 1/2/3) ve onları patlat. İyi yemeklerin kediye ulaşmasına izin ver. 15 iyi yemek topla; 5 kötü yemek yenirse kaybedersin! 🍽️'},
+  {id:5,  name:'Kelime Avı 📖',     emoji:'📖', description:'Gizli kelimelerin hepsini bul!',  howToPlay:'Hikâyede gizlenmiş kelimeleri bul ve üzerlerine tıkla: "pati", "miyav", "mama", "yumak", "bıyık", "tüy". Kelimeler renkli değil, dikkatli oku! 2 dakikada hepsini bul. 📖'},
+  {id:6,  name:'Yün Topu Avı 🧶',   emoji:'🧶', description:'45 saniyede 25 yün topu topla!',  howToPlay:'Ekranda yuvarlanan yün toplarını yakala! WASD / yön tuşları, fare ya da parmağınla kedini hareket ettir ve topların üstüne gel. 45 saniyede 25 top yakala! 🧶'},
+  {id:7,  name:'Şarkı Söyle 🎵',    emoji:'🎵', description:'Ritme uygun tıkla!',              howToPlay:'Yukarıdan düşen kalpler, notalar ve patiler alttaki dairelere yaklaşınca o daireye tıkla (klavye: A / S / D). Zamanında basarsan PERFECT! 30 saniyede 20 ikon yakala. 🎵'},
+  {id:8,  name:'Anı Albümü 🃏',     emoji:'🃏', description:'Tüm çift kartları eşleştir!',     howToPlay:'Kartları çevir, eşini bul! İki kart aynıysa açık kalır. 60 saniyede 8 çiftin hepsini eşleştir. Hafızanı kullan! 🃏'},
+  {id:9,  name:'Selden Kaç 🌊',     emoji:'🌊', description:'Kalpleri topla, selden kaç!',     howToPlay:'WASD / yön tuşlarıyla koş, W / ↑ / Boşluk ile zıpla (telefonda alttaki butonlar). Arkadan gelen sele yakalanma ve 10 kalbin hepsini topla! 🌊'},
+  {id:10, name:'Nazar Canavarı 🧿', emoji:'🧿', description:'Final Boss\'u yen!',            howToPlay:'Savaş barındaki imleç sarı (mükemmel) ya da beyaz (iyi) bölgedeyken "SALDIRI!" butonuna ya da Boşluk / ↑ tuşuna bas. Canın bitmeden Nazar Canavarı\'nın canını sıfırla! 🧿⚔️'},
+];
+
+function getSave(slot){
+  try{return JSON.parse(localStorage.getItem(SAVE_KEY+slot)||'null');}catch{return null;}
+}
+function setSave(slot,data){
+  localStorage.setItem(SAVE_KEY+slot,JSON.stringify(data));
+}
+function deleteSave(slot){
+  localStorage.removeItem(SAVE_KEY+slot);
+}
+
+const AUTOSAVE_KEY = 'catified_autosave';
+function saveAutosave(){
+  try{localStorage.setItem(AUTOSAVE_KEY,JSON.stringify(gameState));}catch(e){console.error(e);}
+}
+function loadAutosave(){
+  try{
+    const d=localStorage.getItem(AUTOSAVE_KEY);
+    if(d){gameState=Object.assign({catName:CONFIG.defaultCatName},JSON.parse(d));return true;}
+  }catch(e){console.error(e);}
+  return false;
+}
+
+function saveGame(slot=null){
+  if(slot===null){showSaveModal();return;}
+  gameState.lastSaved=new Date().toLocaleString('tr-TR');
+  gameState.saveSlot=slot;
+  setSave(slot,gameState);
+  showToast('💾 Kaydedildi! Slot '+slot);
+  closeModal('modal-save');
+}
+
+function loadGame(slot){
+  const data=getSave(slot);
+  if(!data){showToast('❌ Bu slotta kayıt yok');return;}
+  gameState={catName:CONFIG.defaultCatName,...data};
+  saveAutosave();
+  applyCatName();
+  refreshTitleButtons();
+  closeModal('modal-load');
+  showMap();
+  showToast('✅ Yüklendi! Hoş geldin '+gameState.playerName+'!');
+}
+
+function showSaveModal(){
+  const list=document.getElementById('save-slot-list');
+  list.innerHTML='';
+  for(let i=1;i<=MAX_SLOTS;i++){
+    const s=getSave(i);
+    const div=document.createElement('div');
+    div.className='save-slot';
+    if(s){
+      div.innerHTML=`<div class="save-slot-info"><div class="slot-name">🐱 ${escapeHTML(s.playerName)}</div><div class="slot-detail">Bölüm ${s.currentLevel} • ⭐${s.totalStars} • ${s.lastSaved||''}</div></div><div class="slot-actions"><button class="btn btn-primary btn-sm" onclick="saveGame(${i})">Üstüne Yaz</button></div>`;
+    } else {
+      div.innerHTML=`<div class="save-slot-info"><div class="slot-name">Boş Slot ${i}</div><div class="slot-detail">Henüz kayıt yok</div></div><button class="btn btn-secondary btn-sm" onclick="saveGame(${i})">Kaydet</button>`;
+    }
+    list.appendChild(div);
+  }
+  openModal('modal-save');
+}
+
+function showLoadModal(){
+  const list=document.getElementById('load-slots');
+  list.innerHTML='';
+  let hasSave=false;
+  for(let i=1;i<=MAX_SLOTS;i++){
+    const s=getSave(i);
+    const div=document.createElement('div');
+    div.className='save-slot';
+    if(s){
+      hasSave=true;
+      div.innerHTML=`<div class="save-slot-info"><div class="slot-name">🐱 ${escapeHTML(s.playerName)}</div><div class="slot-detail">Bölüm ${s.currentLevel} • ⭐${s.totalStars} • ${s.lastSaved||''}</div></div><div class="slot-actions"><button class="btn btn-primary btn-sm" onclick="loadGame(${i})">Yükle</button><button class="btn btn-danger btn-sm" onclick="confirmDeleteSave(${i})">🗑</button></div>`;
+    } else {
+      div.innerHTML=`<div class="save-slot-info"><div class="slot-name" style="color:#aaa">Boş Slot ${i}</div></div>`;
+    }
+    list.appendChild(div);
+  }
+  if(!hasSave) list.innerHTML='<p style="color:#aaa;font-size:.85rem;text-align:center">Henüz kayıt yok 😿</p>';
+  openModal('modal-load');
+}
+
+function confirmDeleteSave(slot){
+  if(confirm('Slot '+slot+' silinsin mi?')){deleteSave(slot);showLoadModal();showToast('🗑 Silindi!');}
+}
+
+// ===== SCREEN SYSTEM =====
+function showScreen(id){
+  if(typeof hayaliWalkMode!=='undefined'&&hayaliWalkMode&&id!=='screen-hayali') hayaliToggleWalk();
+  if(id==='screen-title') refreshTitleButtons();
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.game-screen').forEach(s=>s.classList.remove('active'));
+  const el=document.getElementById(id);
+  if(el) el.classList.add('active');
+  document.getElementById('hud').style.display='none';
+}
+
+function openModal(id){document.getElementById(id).classList.add('active');}
+function closeModal(id){document.getElementById(id).classList.remove('active');}
+
+let toastTimer=null;
+function showToast(msg,dur=2000){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  if(toastTimer)clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),dur);
+}
+
+// ===== MAP =====
+function showMap(){
+  showScreen('screen-map');
+  renderMap();
+  document.getElementById('map-player-name').textContent=gameState.playerName;
+  applyCatName();
+  const total=Object.values(gameState.stars).reduce((a,b)=>a+b,0);
+  document.getElementById('map-star-count').textContent='⭐'+total;
+  document.getElementById('map-progress-fill').style.width=(gameState.completedLevels.length/10*100)+'%';
+}
+
+
+function renderMap(){
+  const container=document.getElementById('map-path');
+  container.innerHTML='';
+  const completedList = gameState.completedLevels || [];
+  // Build zigzag path: row1: levels 1,2,3  row2: levels 4,5,6
+  const rows=[[1,2,3,4,5],[6,7,8,9,10]];
+  rows.forEach((row,ri)=>{
+    const rowEl=document.createElement('div');
+    rowEl.className='path-row';
+    row.forEach((lid,i)=>{
+      const lvl=LEVELS[lid-1];
+      const done=completedList.includes(lid);
+      const isCurrent=gameState.currentLevel===lid;
+      const locked=lid>1&&!completedList.includes(lid-1)&&!isCurrent;
+      const node=document.createElement('div');
+      node.className='level-node '+(locked?'locked':done?'completed':isCurrent?'current':'unlocked');
+      const starCount=(gameState.stars||{})[lid]||0;
+      node.innerHTML=`<div class="node-emoji">${lvl.emoji}</div><div class="node-num">B${lid}</div><div class="star-row">${'⭐'.repeat(starCount)}${'☆'.repeat(3-starCount)}</div>`;
+      node.title=lvl.name;
+      if(!locked) node.onclick=()=>startLevel(lid);
+      rowEl.appendChild(node);
+      if(i<row.length-1){
+        const conn=document.createElement('div');
+        conn.className='path-connector '+(done?'done':'locked');
+        rowEl.appendChild(conn);
+      }
+    });
+    container.appendChild(rowEl);
+    if(ri<rows.length-1){
+      const vert=document.createElement('div');
+      vert.className='path-connector vert '+(completedList.includes(5)?'done':'locked');
+      container.appendChild(vert);
+    }
+  });
+}
+
+// ===== NEW GAME =====
+function showNewGameModal(){openModal('modal-new-game');document.getElementById('new-game-name').focus();}
+function startNewGame(){
+  const name=document.getElementById('new-game-name').value.trim()||CONFIG.defaultPlayerName;
+  const cat=document.getElementById('new-game-cat').value.trim()||CONFIG.defaultCatName;
+  gameState={playerName:name,catName:cat,currentLevel:1,completedLevels:[],stars:{},totalStars:0,saveSlot:null,lastSaved:null,hayaliUnlocked:false};
+  saveAutosave();
+  applyCatName();
+  refreshTitleButtons();
+  closeModal('modal-new-game');
+  showMap();
+  showToast('Hoş geldin '+name+'! 🐱💕');
+}
+
+// ===== HUD =====
+let timerInterval=null;
+let timeLeft=60;
+let hudActive=false;
+
+function startHUD(levelName,totalTime,showScore=true){
+  hudActive=true;
+  document.getElementById('hud').style.display='flex';
+  document.getElementById('hud-level-name').textContent=levelName;
+  document.getElementById('hud-timer').style.display=totalTime>0?'block':'none';
+  document.getElementById('hud-score').style.display=showScore?'block':'none';
+  timeLeft=totalTime;
+  document.getElementById('timer-val').textContent=timeLeft;
+  document.getElementById('hud-timer').classList.remove('warning');
+  if(timerInterval)clearInterval(timerInterval);
+  if(totalTime>0){
+    timerInterval=setInterval(()=>{
+      timeLeft--;
+      document.getElementById('timer-val').textContent=timeLeft;
+      if(timeLeft<=10)document.getElementById('hud-timer').classList.add('warning');
+      if(timeLeft<=0){clearInterval(timerInterval);onTimeUp();}
+    },1000);
+  }
+}
+function stopHUD(){
+  hudActive=false;
+  if(timerInterval)clearInterval(timerInterval);
+}
+function setScore(v){document.getElementById('score-val').textContent=v;}
+function pauseToMap(){
+  stopHUD();
+  stopAllGames();
+  hideResult();
+  showMap();
+}
+function exitToMenu(){
+  stopHUD();
+  stopAllGames();
+  hideResult();
+  showScreen('screen-title');
+}
+
+// ===== RESULT POPUP =====
+function showResult(won, msg, stars=0){
+  stopHUD();
+  stopAllGames(); // Safety net: instantly kill all background level ticks
+
+  // icon & title
+  document.getElementById('rp-icon').textContent  = won ? '🎉' : '😿';
+  document.getElementById('rp-title').textContent = won ? 'Kazandın! 🎊' : 'Üzgünüm 😿';
+  document.getElementById('rp-msg').textContent   = msg;
+
+  // stars (only on win)
+  const starsEl = document.getElementById('rp-stars');
+  starsEl.textContent = won ? '⭐'.repeat(stars) + '☆'.repeat(3 - stars) : '';
+
+  // next button
+  const btnNext = document.getElementById('rp-btn-next');
+  if(won){
+    if(activeLevel >= 10){
+      btnNext.textContent = '🎁 Ödülleri Gör!';
+      btnNext.onclick = () => { showReward(); };
+    } else {
+      btnNext.textContent = 'Sonraki Bölüm ➡️';
+      btnNext.onclick = nextLevel;
+    }
+    btnNext.style.display = 'block';
+  } else {
+    btnNext.style.display = 'none';
+  }
+
+
+  // replay & menu buttons
+  document.getElementById('rp-btn-replay').onclick = replayLevel;
+  document.getElementById('rp-btn-menu').onclick   = () => { hideResult(); exitToMenu(); };
+
+  // save progress
+  if(won){
+    const cl = gameState.completedLevels || [];
+    if(!cl.includes(activeLevel)) cl.push(activeLevel);
+    gameState.completedLevels = cl;
+    if(!gameState.stars) gameState.stars = {};
+    gameState.stars[activeLevel] = Math.max(gameState.stars[activeLevel]||0, stars);
+    gameState.totalStars = Object.values(gameState.stars).reduce((a,b)=>a+b, 0);
+    if(gameState.currentLevel === activeLevel && gameState.currentLevel < 10)
+      gameState.currentLevel = activeLevel + 1;
+    if(activeLevel === 10) gameState.hayaliUnlocked = true;
+    refreshTitleButtons();
+
+    // Autosave progress
+    saveAutosave();
+    
+    if(gameState.saveSlot) saveGame(gameState.saveSlot);
+  }
+
+  document.getElementById('rp-bg').classList.add('open');
+}
+function hideResult(){
+  document.getElementById('rp-bg').classList.remove('open');
+}
+function nextLevel(){
+  hideResult();
+  stopAllGames();
+  const next=activeLevel+1;
+  if(next>10){showReward();return;}
+  startLevel(next);
+}
+function replayLevel(){
+  hideResult();
+  stopAllGames();
+  startLevel(activeLevel);
+}
+
+let activeLevel=1;
+let pendingLevelId=null;
+
+function startLevel(lid){
+  if(lid > 10) {
+    showReward();
+    return;
+  }
+  activeLevel=lid;
+  gameState.currentLevel=Math.max(gameState.currentLevel,lid);
+  showScreen('game-l'+lid);
+  document.getElementById('game-l'+lid).classList.add('active');
+  document.getElementById('hud').style.display='none';
+  hideResult();
+  
+  pendingLevelId = lid;
+  const lvl = LEVELS[lid-1];
+  document.getElementById('instruction-title').textContent = lvl.name;
+  document.getElementById('instruction-emoji').textContent = lvl.emoji;
+  document.getElementById('instruction-text').textContent = lvl.howToPlay || lvl.description;
+  openModal('modal-instruction');
+}
+
+function confirmStartLevel(){
+  closeModal('modal-instruction');
+  if(pendingLevelId !== null){
+    document.getElementById('hud').style.display='flex';
+    const init=['initL1','initL2','initL3','initL4','initL5','initL6','initL7','initL8','initL9','initL10'];
+    window[init[pendingLevelId-1]]();
+    pendingLevelId = null;
+  }
+}
+function stopAllGames(){
+  l1Active = false;
+  if(typeof l2Active !== 'undefined') l2Active = false;
+  l3Active = false;
+  l4Active = false;
+  l5Active = false;
+  if(typeof l6Active !== 'undefined') l6Active = false;
+  if(typeof l7Active !== 'undefined') l7Active = false;
+  if(typeof l8Active !== 'undefined') l8Active = false;
+  if(typeof l9Active !== 'undefined') l9Active = false;
+  if(typeof l10Active !== 'undefined') l10Active = false;
+  clearInterval(timerInterval);
+  if(typeof l1MouseTimers !== 'undefined'){ l1MouseTimers.forEach(clearTimeout); l1MouseTimers=[]; }
+  if(typeof activeMousees !== 'undefined') activeMousees.clear();
+  if(typeof l7NoteInterval !== 'undefined') clearInterval(l7NoteInterval);
+  if(typeof l6AnimLoop !== 'undefined') cancelAnimationFrame(l6AnimLoop);
+  l3MoveDir = 0;
+  if(typeof l6Keys !== 'undefined') l6Keys = {up:false,down:false,left:false,right:false};
+  if(typeof l9Keys !== 'undefined') l9Keys = {left:false,right:false,up:false};
+  clearInterval(l1Interval);
+  clearInterval(l2Interval);
+  clearInterval(l3Interval);
+  clearInterval(l4Interval);
+  if(typeof l5Interval !== 'undefined') clearInterval(l5Interval);
+  if(typeof l5WordInterval !== 'undefined') clearInterval(l5WordInterval);
+  if(typeof l6Interval !== 'undefined') clearInterval(l6Interval);
+  if(typeof l7Interval !== 'undefined') clearInterval(l7Interval);
+  if(typeof l8Interval !== 'undefined') clearInterval(l8Interval);
+  if(typeof l9AnimFrame !== 'undefined') cancelAnimationFrame(l9AnimFrame);
+  if(typeof l10Interval !== 'undefined') clearInterval(l10Interval);
+  if(typeof l10AnimFrame !== 'undefined') cancelAnimationFrame(l10AnimFrame);
+}
+
+// =========================================
+// ===== LEVEL 1: FARE YAKALA =====
+// =========================================
+let l1Interval,l1Caught=0,l1Active=false,l1MouseTimers=[];
+const L1_HOLES=9,L1_TARGET=20;
+
+function initL1(){
+  l1Caught=0;l1Active=true;
+  startHUD('Fare Avı 🐭',45,true);
+  setScore('0/20');
+  document.getElementById('l1-caught').textContent='0';
+  const grid=document.getElementById('l1-grid');
+  grid.innerHTML='';
+  for(let i=0;i<L1_HOLES;i++){
+    const h=document.createElement('div');
+    h.className='hole';h.dataset.idx=i;
+    h.innerHTML='<div class="hole-inner">🕳️</div>';
+    h.onclick=()=>catchMouse(i);
+    grid.appendChild(h);
+  }
+  l1MouseTimers.forEach(clearTimeout);l1MouseTimers=[];
+  activeMousees.clear();
+  scheduleNextMouse();
+}
+
+let activeMousees=new Set();
+function scheduleNextMouse(){
+  if(!l1Active)return;
+  const delay=300+Math.random()*700;
+  const t=setTimeout(()=>{
+    if(!l1Active||activeMousees.size>=5)return scheduleNextMouse();
+    const holes=document.querySelectorAll('.hole');
+    const available=[...holes].filter(h=>!h.classList.contains('has-mouse'));
+    if(!available.length)return scheduleNextMouse();
+    const h=available[Math.floor(Math.random()*available.length)];
+    const idx=parseInt(h.dataset.idx);
+    h.classList.add('has-mouse');h.querySelector('.hole-inner').textContent='🐭';
+    activeMousees.add(idx);
+    const hideT=setTimeout(()=>{
+      if(h.classList.contains('has-mouse')){
+        h.classList.remove('has-mouse');h.querySelector('.hole-inner').textContent='🕳️';
+        activeMousees.delete(idx);
+      }
+    },900+Math.random()*600);
+    l1MouseTimers.push(hideT);
+    scheduleNextMouse();
+  },delay);
+  l1MouseTimers.push(t);
+}
+
+function catchMouse(idx){
+  if(!l1Active)return;
+  const h=document.querySelector(`.hole[data-idx="${idx}"]`);
+  if(!h||!h.classList.contains('has-mouse'))return;
+  h.classList.remove('has-mouse');h.querySelector('.hole-inner').textContent='✨';
+  activeMousees.delete(idx);
+  setTimeout(()=>{if(h)h.querySelector('.hole-inner').textContent='🕳️';},300);
+  l1Caught++;
+  document.getElementById('l1-caught').textContent=l1Caught;
+  setScore(l1Caught+'/20');
+  if(l1Caught>=L1_TARGET){
+    l1Active=false;l1MouseTimers.forEach(clearTimeout);
+    const stars=timeLeft>22?3:timeLeft>10?2:1;
+    showResult(true,'20 fareyi yakaladın! Harika! 🐱',stars);
+  }
+}
+
+function onTimeUp(){
+  if(activeLevel===1){
+    l1Active=false;l1MouseTimers.forEach(clearTimeout);
+    if(l1Caught>=L1_TARGET)return;
+    showResult(false,`Sadece ${l1Caught}/20 fare yakaladın. Tekrar dene! 🐭`);
+  }
+  if(activeLevel===2)endRace();
+  if(activeLevel===3)endL3();
+  if(activeLevel===4)endL4();
+  if(activeLevel===5)endL5();
+  if(activeLevel===6)endL6();
+  if(activeLevel===7)endL7();
+  if(activeLevel===8)endL8();
+  if(activeLevel===9)endL9();
+}
+
+// =========================================
+// ===== LEVEL 2: KOŞU =====
+// =========================================
+let l2Interval,l2PlayerPos=0,l2RivalPos=0,l2TapCount=0,l2Active=false;
+let l2TapTimes=[];
+const L2_RIVAL_SPEED=3.6,L2_FINISH=90;
+
+let cacheP1Bar, cacheP2Bar, cacheP1Speed, cacheP2Speed, cacheL2Player, cacheL2Rival, cacheTapCount;
+
+function initL2(){
+  l2PlayerPos=0;l2RivalPos=0;l2TapCount=0;l2Active=true;l2TapTimes=[];
+  startHUD('Yarış 🏃',30,true);
+  setScore('0 tık/s');
+  
+  // Cache DOM element references
+  cacheP1Bar = document.getElementById('p1-bar');
+  cacheP2Bar = document.getElementById('p2-bar');
+  cacheP1Speed = document.getElementById('p1-speed');
+  cacheP2Speed = document.getElementById('p2-speed');
+  cacheL2Player = document.getElementById('l2-player');
+  cacheL2Rival = document.getElementById('l2-rival');
+  cacheTapCount = document.getElementById('tap-count');
+
+  if(cacheTapCount) cacheTapCount.textContent='0 kez';
+  if(cacheL2Player) cacheL2Player.style.left='2%';
+  if(cacheL2Rival) cacheL2Rival.style.left='2%';
+  if(cacheP1Bar) cacheP1Bar.style.width='0%';
+  if(cacheP2Bar) cacheP2Bar.style.width='0%';
+  
+  clearInterval(l2Interval);
+  l2Interval=setInterval(()=>{
+    if(!l2Active)return;
+    l2RivalPos+=L2_RIVAL_SPEED*0.05;
+    const pct=Math.min(l2PlayerPos/L2_FINISH*88,90);
+    const rpct=Math.min(l2RivalPos/L2_FINISH*88,90);
+    
+    if(cacheL2Player) cacheL2Player.style.left=pct+'%';
+    if(cacheL2Rival) cacheL2Rival.style.left=rpct+'%';
+    if(cacheP2Bar) cacheP2Bar.style.width=Math.min(rpct,'100')+'%';
+    if(cacheP2Speed) cacheP2Speed.textContent=(L2_RIVAL_SPEED).toFixed(1);
+    
+    const now=Date.now();
+    l2TapTimes=l2TapTimes.filter(t=>now-t<1000);
+    const tps=l2TapTimes.length;
+    
+    if(cacheP1Speed) cacheP1Speed.textContent=tps.toFixed(1);
+    if(cacheP1Bar) cacheP1Bar.style.width=Math.min(tps/5*100,100)+'%';
+    
+    setScore(tps+' tık/s');
+    if(l2RivalPos>=L2_FINISH){l2Active=false;clearInterval(l2Interval);stopHUD();showResult(false,'Rakip seni geçti! Daha hızlı tıkla! 🐈‍⬛');}
+    if(l2PlayerPos>=L2_FINISH){l2Active=false;clearInterval(l2Interval);stopHUD();showResult(true,'Yarışı kazandın! Süper! 🏆',3);}
+  },50);
+}
+
+function tapRace(e){
+  if(e && e.type==='click' && e.detail===0) return; // ignore keyboard-generated clicks (Space is handled separately)
+  if(e) e.preventDefault(); // Stop mobile double-taps/click delays
+  if(!l2Active)return;
+  l2TapCount++;
+  l2TapTimes.push(Date.now());
+  l2PlayerPos+=1.0;
+  
+  if(cacheTapCount) cacheTapCount.textContent=l2TapCount+' kez';
+  const pct=Math.min(l2PlayerPos/L2_FINISH*88,90);
+  if(cacheL2Player) cacheL2Player.style.left=pct+'%';
+  if(cacheP1Bar) cacheP1Bar.style.width=Math.min(pct,'100')+'%';
+}
+function endRace(){
+  l2Active=false;clearInterval(l2Interval);
+  if(l2PlayerPos>=l2RivalPos)showResult(true,'Tam kapanışta kazandın! 🏆',2);
+  else showResult(false,'Süre doldu, rakip önde! Tekrar dene! 🐈‍⬛');
+}
+
+// =========================================
+// ===== LEVEL 3: MAMA YAKALA =====
+// =========================================
+let l3Interval,l3FoodList=[],l3PlayerX=50,l3Caught3=0,l3Missed3=0,l3Active=false,l3MoveDir=0,l3MoveInterval=null;
+const L3_FOODS=['🍗','🐟','🥩','🍣','🦐'];
+
+function initL3(){
+  l3Caught3=0;l3Missed3=0;l3PlayerX=50;l3Active=true;l3FoodList=[];
+  document.getElementById('l3-area').querySelectorAll('.food-item').forEach(e=>e.remove());
+  document.getElementById('l3-caught').textContent='0';
+  document.getElementById('l3-missed').textContent='0';
+  startHUD('Mama Kazan 🍗',30,true);
+  setScore('0/25');
+  clearInterval(l3Interval);
+  let spawnTimer=0;
+  l3Interval=setInterval(()=>{
+    if(!l3Active)return;
+    const area=document.getElementById('l3-area');
+    const W=area.clientWidth,H=area.clientHeight;
+    // move player
+    if(l3MoveDir!==0){
+      l3PlayerX=Math.max(5,Math.min(95,l3PlayerX+l3MoveDir*2));
+      document.getElementById('l3-player').style.left=l3PlayerX+'%';
+    }
+    // spawn food
+    spawnTimer++;
+    if(spawnTimer%15===0){
+      const food={x:10+Math.random()*80,y:0,el:null,emoji:L3_FOODS[Math.floor(Math.random()*L3_FOODS.length)]};
+      const el=document.createElement('div');
+      el.className='food-item';el.textContent=food.emoji;
+      el.style.left=food.x+'%';el.style.top='0%';
+      area.appendChild(el);food.el=el;l3FoodList.push(food);
+    }
+    // update food (filter instead of splicing inside forEach, which skipped items)
+    l3FoodList=l3FoodList.filter(f=>{
+      if(!l3Active)return false;
+      f.y+=1.8;
+      if(f.el)f.el.style.top=f.y+'%';
+      const catBottom=88;
+      if(f.y<catBottom-8)return true;
+      const playerPx=l3PlayerX/100*W;
+      const foodPx=f.x/100*W;
+      if(Math.abs(playerPx-foodPx)<45){
+        l3Caught3++;
+        document.getElementById('l3-caught').textContent=l3Caught3;
+        setScore(l3Caught3+'/25');
+        if(l3Caught3>=25){
+          l3Active=false;clearInterval(l3Interval);stopHUD();
+          const stars=l3Missed3<=2?3:l3Missed3<=5?2:1;
+          showResult(true,`25 mama topladın! Süper hızlısın! 🍗`,stars);
+        }
+      } else {
+        l3Missed3++;
+        document.getElementById('l3-missed').textContent=l3Missed3;
+      }
+      if(f.el){f.el.remove();f.el=null;}
+      return false;
+    });
+  },33);
+}
+
+function l3StartMove(dir){l3MoveDir=dir;}
+function l3StopMove(){l3MoveDir=0;}
+function endL3(){
+  l3Active=false;clearInterval(l3Interval);
+  if(l3Caught3>=25){
+    const stars=l3Missed3<=2?3:l3Missed3<=5?2:1;
+    showResult(true,`Süre bitti ve 25 mama yakaladın! Harika! 🍗`,stars);
+  } else {
+    showResult(false,`Süre bitti, sadece ${l3Caught3}/25 mama toplayabildin. Tekrar dene! 🍗`);
+  }
+}
+
+// =========================================
+// ===== LEVEL 4: YİYECEK SEÇME =====
+// =========================================
+// ===== LEVEL 4: 3-LANE FOOD GAME =====
+// =========================================
+let l4Interval, l4Active=false, l4GoodCaught=0, l4BadEaten=0;
+let l4Lanes=[[],[],[]];
+const L4_GOOD=['🍗','🐟','🥩','🍣','🦐','🧀','🥚','🫙','🥫'];
+const L4_BAD=['💩','🦠','🧪','☠️','🤢','🧫','💊','🗑️'];
+const L4_SPEED=0.55; // % per frame
+const L4_SPAWN_INTERVAL=90; // frames between spawns per lane
+const L4_ZONE_START=16; // % - where food is reachable by button
+const L4_ZONE_END=4;   // % - food passes the hit zone
+let l4Frame=0;
+let l4BtnActive=[false,false,false];
+
+function initL4(){
+  l4Active=true; l4GoodCaught=0; l4BadEaten=0; l4Frame=0;
+  l4Lanes=[[],[],[]];
+  l4BtnActive=[false,false,false];
+
+  // Clear existing foods
+  [0,1,2].forEach(i=>{
+    const lane=document.getElementById('l4-lane-'+i);
+    lane.querySelectorAll('.l4-food-item').forEach(e=>e.remove());
+    l4ShowBtn(i,false);
+  });
+  document.getElementById('l4-good').textContent='0';
+  document.getElementById('l4-bad').textContent='0';
+  ['l4-cat-0','l4-cat-1'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent='😺';});
+
+  startHUD('Yemek Seç 🍽️',60,true);
+  setScore('0/15 iyi');
+  clearInterval(l4Interval);
+
+  // Stagger initial spawn offsets
+  const spawnOffsets=[0,30,60];
+  let spawnTimers=spawnOffsets.slice();
+
+  l4Interval=setInterval(()=>{
+    if(!l4Active)return;
+    l4Frame++;
+
+    // Spawn
+    [0,1,2].forEach(laneIdx=>{
+      spawnTimers[laneIdx]--;
+      if(spawnTimers[laneIdx]<=0){
+        spawnTimers[laneIdx]=L4_SPAWN_INTERVAL+(Math.random()*40-20)|0;
+        l4SpawnFood(laneIdx);
+      }
+    });
+
+    // Move all foods
+    [0,1,2].forEach(laneIdx=>{
+      if(!l4Active)return;
+      const lane=document.getElementById('l4-lane-'+laneIdx);
+      const foods=l4Lanes[laneIdx];
+      let hasBadInZone=false;
+      const toRemove=[];
+
+      foods.forEach(f=>{
+        if(f.popped||!l4Active) return;
+        f.x -= L4_SPEED;
+        if(f.el) f.el.style.left=f.x+'%';
+
+        // Check if bad food is in button zone
+        if(!f.good && f.x<=L4_ZONE_START && f.x>L4_ZONE_END){
+          hasBadInZone=true;
+        }
+
+        // Food passed hit zone without being caught
+        if(f.x<=L4_ZONE_END){
+          if(f.good){
+            // Good food reaches cat - success!
+            l4GoodCaught++;
+            document.getElementById('l4-good').textContent=l4GoodCaught;
+            setScore(l4GoodCaught+'/15 iyi');
+            l4CatReact(laneIdx,true);
+            if(l4GoodCaught>=15){l4Win();return;}
+          } else if(!f.popped){
+            // Bad food reached cat - damage!
+            l4BadEaten++;
+            document.getElementById('l4-bad').textContent=l4BadEaten;
+            showToast('😱 Kötü yemek yendi!');
+            l4CatReact(laneIdx,false);
+            if(l4BadEaten>=5){l4Lose();return;}
+          }
+          f.popped=true;
+          toRemove.push(f);
+        }
+      });
+
+      // Cleanup passed/popped
+      toRemove.forEach(f=>{if(f.el&&f.el.parentNode)f.el.remove();});
+      l4Lanes[laneIdx]=foods.filter(f=>!f.popped);
+
+      // Show/hide button for this lane
+      l4ShowBtn(laneIdx, hasBadInZone);
+    });
+  },33);
+}
+
+function l4SpawnFood(laneIdx){
+  const isGood=Math.random()>.4;
+  const emoji=isGood?L4_GOOD[Math.floor(Math.random()*L4_GOOD.length)]:L4_BAD[Math.floor(Math.random()*L4_BAD.length)];
+  const el=document.createElement('div');
+  el.className='l4-food-item'+(isGood?'':' bad-food');
+  el.textContent=emoji;
+  el.style.left='102%';
+  document.getElementById('l4-lane-'+laneIdx).appendChild(el);
+  const food={x:102, good:isGood, el:el, lane:laneIdx, popped:false};
+  l4Lanes[laneIdx].push(food);
+}
+
+function l4ShowBtn(laneIdx, show){
+  const btn=document.getElementById('l4-btn-'+laneIdx);
+  if(!btn)return;
+  if(show && !l4BtnActive[laneIdx]){
+    btn.classList.remove('hidden');
+    l4BtnActive[laneIdx]=true;
+  } else if(!show && l4BtnActive[laneIdx]){
+    btn.classList.add('hidden');
+    l4BtnActive[laneIdx]=false;
+  }
+}
+
+function l4HitLane(laneIdx){
+  if(!l4Active)return;
+  const foods=l4Lanes[laneIdx];
+  // Find the frontmost bad food in the zone
+  let target=null;
+  let minX=999;
+  foods.forEach(f=>{
+    if(!f.good && !f.popped && f.x<=L4_ZONE_START+5 && f.x>0 && f.x<minX){
+      minX=f.x; target=f;
+    }
+  });
+  if(target){
+    target.popped=true;
+    if(target.el){
+      target.el.textContent='💥';
+      target.el.style.filter='none';
+      target.el.style.fontSize='2.4rem';
+      setTimeout(()=>{if(target.el&&target.el.parentNode)target.el.remove();},280);
+    }
+    showToast('✅ Kötü yemek engellendi!');
+    l4ShowBtn(laneIdx,false);
+    // Check if another bad is still in zone
+    setTimeout(()=>{
+      const stillBad=l4Lanes[laneIdx].some(f=>!f.popped&&!f.good&&f.x<=L4_ZONE_START&&f.x>L4_ZONE_END);
+      l4ShowBtn(laneIdx, stillBad);
+    },50);
+  }
+}
+
+function l4CatReact(laneIdx, good){
+  const ids=['l4-cat-0','l4-cat-1'];
+  ids.forEach(id=>{
+    const el=document.getElementById(id);
+    if(!el)return;
+    el.textContent=good?'😻':'🙀';
+    el.style.transform='scale(1.3)';
+    setTimeout(()=>{if(l4Active&&el){el.textContent='😺';el.style.transform='scale(1)';}},350);
+  });
+}
+
+function l4Win(){
+  l4Active=false; clearInterval(l4Interval); stopHUD();
+  const stars=l4BadEaten===0?3:l4BadEaten<=2?2:1;
+  showResult(true,`15 iyi yemek! ${l4BadEaten} kötü yendi. 🍗`,stars);
+}
+function l4Lose(){
+  l4Active=false; clearInterval(l4Interval); stopHUD();
+  showResult(false,'5 kötü yemek yendi! 💀 Kedi zehirlendi!');
+}
+function endL4(){
+  l4Active=false; clearInterval(l4Interval);
+  if(l4GoodCaught>=15) showResult(true,'Harika! 15 iyi yemek topladın! 🌟',2);
+  else showResult(false,`Sadece ${l4GoodCaught}/15 iyi yemek. Devam et! 🍗`);
+}
+
+// =========================================
+// ===== LEVEL 5: KELİME AVLAMA =====
+// =========================================
+const KEYWORDS=['pati','miyav','mama','yumak','bıyık','tüy'];
+let l5Found=new Set(),l5Active=false,l5Total=0;
+// Whole-word match (so "mama" doesn't light up inside other words)
+const L5_RE=()=>new RegExp('(?<!\\p{L})('+KEYWORDS.join('|')+')(?!\\p{L})','giu');
+const L5_TEXT = `Bir sabah küçük kedimiz güneşin ilk ışıklarıyla uyandı ve kocaman bir miyav ile güne merhaba dedi.
+Önce aynanın karşısına geçti, her bir bıyık teline tek tek baktı ve kendini çok şık buldu.
+Mutfağa koştuğunda kabında onu bekleyen sıcacık mama vardı; hepsini bir çırpıda bitirdi.
+Sonra salondaki sepette duran pembe yumak gözüne çarptı ve hemen oyuna daldı.
+Yumak yuvarlandıkça minik pati ardından koşturdu, halının üstünde renkli ipler dolaştı.
+Koltuğun altında kaybolan yumak için bir pati daha uzattı, ama yetişemedi ve tatlı bir miyav çıkardı.
+Pencerenin önünde dinlenirken rüzgârla uçuşan bir tüy dikkatini çekti.
+O tüy havada dans ettikçe kedimiz de zıpladı, döndü, bıyık uçları heyecanla titredi.
+Öğleden sonra bahçeye çıktı; çiçeklerin arasında yumuşacık bir tüy daha buldu ve onu yuvasına taşıdı.
+Akşam olunca karnı yine acıktı, kabının başına oturup sabırsızca miyav dedi.
+Bu sefer en sevdiği balıklı mama gelmişti; her lokmadan sonra bıyık uçlarını yaladı.
+Yemekten sonra en yumuşak yastığa kıvrıldı, bir pati yüzünün üstünde, gözleri yavaşça kapandı.
+Rüyasında kocaman bir yumak, tüy gibi hafif yastıklar ve hiç bitmeyen bir mama tabağı vardı.
+Uyurken bile ara ara minik bir miyav kaçırdı; çünkü rüyası en az günü kadar güzeldi.`;
+
+function initL5(){
+  l5Found=new Set();l5Active=true;
+  startHUD('Kelime Avı 💌',120,true);
+  // count total occurrences
+  l5Total=(L5_TEXT.match(L5_RE())||[]).length;
+  setScore('0/'+l5Total);
+  document.getElementById('l5-remaining').textContent=l5Total;
+  // render badges
+  const prog=document.getElementById('l5-kw-progress');
+  prog.innerHTML='';
+  KEYWORDS.forEach(kw=>{
+    const b=document.createElement('span');
+    b.className='kw-badge pink-kw';b.textContent=kw;b.id='badge-'+kw;
+    prog.appendChild(b);
+  });
+  // render text (single pass so inserted HTML is never re-matched)
+  const textEl=document.getElementById('l5-text');
+  textEl.innerHTML=escapeHTML(L5_TEXT).replace(L5_RE(),m=>{
+    const kw=m.toLocaleLowerCase('tr');
+    return `<span class="target-word pink-kw" data-kw="${kw}" onclick="clickWord(this,'${kw}')">${m}</span>`;
+  }).replace(/\n/g,'<br>');
+  textEl.scrollTop=0;
+}
+
+function clickWord(el,kw){
+  if(!l5Active||el.classList.contains('found'))return;
+  el.classList.add('found');el.classList.remove('pink-kw');
+  l5Found.add(el);
+  const remaining=document.querySelectorAll('.target-word.pink-kw').length;
+  document.getElementById('l5-remaining').textContent=remaining;
+  setScore((l5Total-remaining)+'/'+l5Total);
+  const allOfKw=document.querySelectorAll(`.target-word[data-kw="${kw}"]`);
+  const allFound=[...allOfKw].every(e=>e.classList.contains('found'));
+  if(allFound){const b=document.getElementById('badge-'+kw);if(b){b.classList.remove('pink-kw');b.classList.add('done-kw');}}
+  if(remaining===0){
+    l5Active=false;stopHUD();
+    const stars=timeLeft>90?3:timeLeft>45?2:1;
+    showResult(true,'Tüm gizli kelimeleri buldun! 💖',stars);
+  }
+}
+function endL5(){
+  l5Active=false;
+  const remaining=document.querySelectorAll('.target-word.pink-kw').length;
+  if(remaining===0)showResult(true,'Tümünü buldun! 💖',2);
+  else showResult(false,`${remaining} kelime kaldı. Hepsini bul! 📖`);
+}
+
+// =========================================
+// ===== LEVEL 10: BOSS FIGHT (NAZAR) =====
+// =========================================
+let l10PlayerHP=100,l10BossHP=120,l10Active=false,l10PlayerTurn=true;
+let l10Interval,l10AnimFrame;
+let l10CursorPos=10,l10CursorDir=1,l10CursorSpeed=1.8;
+
+function initL10(){
+  l10PlayerHP=100;l10BossHP=120;l10Active=true;l10PlayerTurn=true;
+  l10CursorPos=10;l10CursorDir=1;l10CursorSpeed=1.8;
+  const btn=document.getElementById('battle-btn');
+  if(btn){btn.disabled=false;btn.textContent='⚔️ SALDIRI!';}
+  const pSprite=document.getElementById('player-sprite');
+  const bSprite=document.getElementById('boss-sprite');
+  if(pSprite){pSprite.style.transform='scale(1) translateX(0px)';pSprite.style.filter='drop-shadow(0 0 10px rgba(255,217,61,0.5))';}
+  if(bSprite){bSprite.style.transform='scale(1) translateX(0px)';bSprite.style.filter='none';}
+  startHUD('Nazar Canavarı 🧿',0,false);
+  document.getElementById('player-hp-bar').style.width='100%';
+  document.getElementById('boss-hp-bar').style.width='100%';
+  document.getElementById('player-hp-val').textContent='100';
+  document.getElementById('boss-hp-val').textContent='120';
+  document.getElementById('combat-log').textContent='Savaş başladı! Sıra sende... 🐱⚔️';
+  clearInterval(l10Interval);cancelAnimationFrame(l10AnimFrame);
+  let l10Last=performance.now();
+  function animCursor(now){
+    if(!l10Active)return;
+    const k=Math.min(3,Math.max(0,(now-l10Last)/STEP)); l10Last=now;
+    if(l10PlayerTurn){
+      l10CursorPos+=l10CursorDir*l10CursorSpeed*k;
+      if(l10CursorPos>=88){l10CursorPos=88;l10CursorDir=-1;}
+      if(l10CursorPos<=5){l10CursorPos=5;l10CursorDir=1;}
+      document.getElementById('battle-cursor').style.left=l10CursorPos+'%';
+    }
+    l10AnimFrame=requestAnimationFrame(animCursor);
+  }
+  l10AnimFrame=requestAnimationFrame(animCursor);
+}
+
+function battleStrike(){
+  if(!l10Active||!l10PlayerTurn)return;
+  l10PlayerTurn=false;
+  const btn=document.getElementById('battle-btn');
+  if(btn){btn.disabled=true;btn.textContent='⏳ Nazar\'ın Sırası...';}
+  const cursor=l10CursorPos;
+  let dmg=0,log='';
+  if(cursor>=40&&cursor<=60){dmg=Math.floor(18+Math.random()*6);log=`${catName()} MÜKEMMEL vurdu! Nazar ${dmg} hasar aldı! ✨⚔️`;}
+  else if(cursor>=20&&cursor<=80){dmg=Math.floor(10+Math.random()*8);log=`${catName()} iyi vurdu! Nazar ${dmg} hasar aldı! ⚔️`;}
+  else{dmg=Math.floor(4+Math.random()*4);log=`${catName()} zayıf vurdu... Nazar ${dmg} hasar aldı. 😓`;}
+  l10BossHP=Math.max(0,l10BossHP-dmg);
+  updateHPBars();
+  document.getElementById('combat-log').textContent=log;
+  const pSprite=document.getElementById('player-sprite');
+  const bSprite=document.getElementById('boss-sprite');
+  if(pSprite){pSprite.style.transform='scale(1.2) translateX(40px)';setTimeout(()=>{pSprite.style.transform='scale(1) translateX(0px)';},200);}
+  if(bSprite){bSprite.style.filter='hue-rotate(90deg) saturate(3) drop-shadow(0 0 15px rgba(255,0,0,0.8))';setTimeout(()=>{bSprite.style.filter='none';},200);}
+  const area=document.getElementById('battle-bar-area');
+  const dmgEl=document.createElement('div');
+  dmgEl.className='battle-dmg';dmgEl.textContent='-'+dmg;
+  dmgEl.style.left='70%';dmgEl.style.top='0';
+  dmgEl.style.color=dmg>=18?'#FFD700':dmg>=10?'#FF8EC7':'#aaa';
+  area.appendChild(dmgEl);setTimeout(()=>dmgEl.remove(),1000);
+  l10CursorSpeed=Math.min(4.0,l10CursorSpeed+0.25);
+  if(l10BossHP<=0){
+    l10Active=false;cancelAnimationFrame(l10AnimFrame);stopHUD();
+    showResult(true,'Nazar Canavarını yendin! Tebrikler! 🏆✨',3);
+  } else {
+    setTimeout(()=>{if(l10Active)bossStrike10();},1500);
+  }
+}
+
+function bossStrike10(){
+  if(!l10Active)return;
+  const pSprite=document.getElementById('player-sprite');
+  const bSprite=document.getElementById('boss-sprite');
+  if(bSprite){bSprite.style.transform='scale(1.2) translateX(-40px)';setTimeout(()=>{bSprite.style.transform='scale(1) translateX(0px)';},200);}
+  if(pSprite){pSprite.style.filter='opacity(0.5) saturate(2) sepia(1) drop-shadow(0 0 15px rgba(255,0,0,0.8))';setTimeout(()=>{pSprite.style.filter='drop-shadow(0 0 10px rgba(255,217,61,0.5))';},200);}
+  const overlay=document.getElementById('boss-atk-overlay');
+  if(overlay){overlay.classList.add('flash');setTimeout(()=>overlay.classList.remove('flash'),200);}
+  const dmg=Math.floor(6+Math.random()*4);
+  l10PlayerHP=Math.max(0,l10PlayerHP-dmg);
+  updateHPBars();
+  document.getElementById('combat-log').textContent=`Nazar hipnotize edici bir bakışla saldırdı! ${catName()} ${dmg} hasar aldı! 💥`;
+  const area=document.getElementById('battle-bar-area');
+  const dmgEl=document.createElement('div');
+  dmgEl.className='battle-dmg';dmgEl.textContent='-'+dmg;
+  dmgEl.style.left='20%';dmgEl.style.top='0';dmgEl.style.color='#FF4757';
+  area.appendChild(dmgEl);setTimeout(()=>dmgEl.remove(),1000);
+  if(l10PlayerHP<=0){
+    l10Active=false;cancelAnimationFrame(l10AnimFrame);stopHUD();
+    showResult(false,`${catName()} yenildi! Ama vazgeçme! 😿`);
+  } else {
+    setTimeout(()=>{
+      if(l10Active){
+        l10PlayerTurn=true;
+        const btn=document.getElementById('battle-btn');
+        if(btn){btn.disabled=false;btn.textContent='⚔️ SALDIRI!';}
+        document.getElementById('combat-log').textContent='Sıra sende! Hazır ol ve vur! 🐱⚔️';
+      }
+    },1500);
+  }
+}
+
+function updateHPBars(){
+  document.getElementById('player-hp-bar').style.width=l10PlayerHP+'%';
+  document.getElementById('boss-hp-bar').style.width=(l10BossHP/120*100)+'%';
+  document.getElementById('player-hp-val').textContent=l10PlayerHP;
+  document.getElementById('boss-hp-val').textContent=l10BossHP;
+}
+
+// =========================================
+// ===== REWARD SCREEN =====
+// =========================================
+function showReward(){
+  hideResult();stopAllGames();stopHUD();
+  showScreen('screen-reward');
+  applyCatName();
+  const linksEl=document.getElementById('reward-links');
+  linksEl.innerHTML='';
+  const total=Object.values(gameState.stars||{}).reduce((a,b)=>a+b,0);
+  const sum=document.createElement('div');
+  sum.className='reward-summary';
+  sum.textContent=`⭐ ${total}/30 yıldız topladın!`;
+  linksEl.appendChild(sum);
+  if(gameState.hayaliUnlocked){
+    const h=document.createElement('button');
+    h.className='btn reward-link-btn house';
+    h.style.width='100%';h.style.border='none';
+    h.textContent='🏡 Yeni Oyun Açıldı: Hayal Evim!';
+    h.onclick=()=>{showScreen('screen-hayali');initHayali();};
+    linksEl.appendChild(h);
+  }
+  (CONFIG.rewardLinks||[]).forEach(r=>{
+    if(!r||!r.url)return;
+    const btn=document.createElement('button');
+    btn.className='btn reward-link-btn custom';
+    btn.style.width='100%';btn.style.border='none';
+    btn.textContent=r.label||'🎁 Sürpriz';
+    btn.onclick=()=>{
+      try{window.open(r.url,'_blank','noopener,noreferrer');}
+      catch(e){window.location.href=r.url;}
+    };
+    linksEl.appendChild(btn);
+  });
+  const letter=document.getElementById('letter-section');
+  if(CONFIG.letter){
+    letter.style.display='block';
+    letter.innerHTML='<div style="font-family:Fredoka One,cursive;color:var(--pink);margin-bottom:.4rem">💌 Sana Bir Mesaj:</div>'+escapeHTML(CONFIG.letter).replace(/\n/g,'<br>');
+  } else {
+    letter.style.display='none';
+  }
+}
+
+// ===== INIT BG STARS =====
+function initStars(){
+  const c=document.getElementById('bgStars');
+  for(let i=0;i<18;i++){
+    const s=document.createElement('div');
+    s.className='star';
+    s.style.left=Math.random()*100+'%';
+    s.style.top=Math.random()*100+'%';
+    s.style.width=s.style.height=(3+Math.random()*6)+'px';
+    s.style.animationDelay=Math.random()*2+'s';
+    s.style.animationDuration=(1.5+Math.random()*2)+'s';
+    c.appendChild(s);
+  }
+}
+
+// ===== KEYBOARD SUPPORT =====
+// Only react while a level is actually on screen and the player isn't typing in a text box.
+function isTypingTarget(e){const t=e.target;return !!(t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.isContentEditable));}
+function levelOnScreen(){
+  const el=document.getElementById('game-l'+activeLevel);
+  return !!(el&&el.classList.contains('active'))&&!document.getElementById('modal-instruction').classList.contains('active');
+}
+document.addEventListener('keydown',e=>{
+  if(isTypingTarget(e)||!levelOnScreen())return;
+  const c=e.code;
+  if(activeLevel===2&&c==='Space'){e.preventDefault();if(!e.repeat)tapRace();}
+  if(activeLevel===3){
+    if(c==='ArrowLeft'||c==='KeyA'){e.preventDefault();l3StartMove(-1);}
+    if(c==='ArrowRight'||c==='KeyD'){e.preventDefault();l3StartMove(1);}
+  }
+  if(activeLevel===4&&!e.repeat){
+    let lane=['Digit1','Digit2','Digit3'].indexOf(c);
+    if(lane<0) lane=['Numpad1','Numpad2','Numpad3'].indexOf(c);
+    if(lane>=0){e.preventDefault();l4HitLane(lane);}
+  }
+  if(activeLevel===6){
+    if(c==='KeyW'||c==='ArrowUp'){l6Keys.up=true;e.preventDefault();}
+    if(c==='KeyS'||c==='ArrowDown'){l6Keys.down=true;e.preventDefault();}
+    if(c==='KeyA'||c==='ArrowLeft'){l6Keys.left=true;e.preventDefault();}
+    if(c==='KeyD'||c==='ArrowRight'){l6Keys.right=true;e.preventDefault();}
+  }
+  if(activeLevel===7&&!e.repeat){
+    let lane=['KeyA','KeyS','KeyD'].indexOf(c);
+    if(lane<0) lane=['ArrowLeft','ArrowDown','ArrowRight'].indexOf(c);
+    if(lane>=0){e.preventDefault();l7HitZone(lane);}
+  }
+  if(activeLevel===9){
+    if(c==='KeyW'||c==='ArrowUp'||c==='Space'){l9Keys.up=true;e.preventDefault();}
+    if(c==='KeyA'||c==='ArrowLeft'){l9Keys.left=true;e.preventDefault();}
+    if(c==='KeyD'||c==='ArrowRight'){l9Keys.right=true;e.preventDefault();}
+  }
+  if(activeLevel===10&&(c==='Space'||c==='ArrowUp')){e.preventDefault();if(!e.repeat)battleStrike();}
+});
+document.addEventListener('keyup',e=>{
+  const c=e.code;
+  // Always release held keys, even if the screen changed while holding them
+  if((c==='ArrowLeft'||c==='KeyA')&&l3MoveDir===-1)l3StopMove();
+  if((c==='ArrowRight'||c==='KeyD')&&l3MoveDir===1)l3StopMove();
+  if(c==='KeyW'||c==='ArrowUp')l6Keys.up=false;
+  if(c==='KeyS'||c==='ArrowDown')l6Keys.down=false;
+  if(c==='KeyA'||c==='ArrowLeft')l6Keys.left=false;
+  if(c==='KeyD'||c==='ArrowRight')l6Keys.right=false;
+  if(c==='KeyW'||c==='ArrowUp'||c==='Space')l9Keys.up=false;
+  if(c==='KeyA'||c==='ArrowLeft')l9Keys.left=false;
+  if(c==='KeyD'||c==='ArrowRight')l9Keys.right=false;
+});
+
+// =========================================
+// ===== LEVEL 6: YÜN TOPU AVI =====
+// =========================================
+let l6Active=false,l6Caught6=0,l6Interval=null,l6AnimLoop=null;
+let l6Keys={up:false,down:false,left:false,right:false};
+let l6PlayerX=50,l6PlayerY=50;
+let l6Balls=[];
+
+function initL6(){
+  l6Active=true;l6Caught6=0;l6Keys={up:false,down:false,left:false,right:false};
+  l6PlayerX=50;l6PlayerY=50;l6Balls=[];
+  document.getElementById('l6-caught').textContent='0';
+  const area=document.getElementById('l6-area');
+  area.querySelectorAll('.l6-ball').forEach(e=>e.remove());
+  const player=document.getElementById('l6-player');
+  player.textContent='🐱';
+  player.style.left='50%';player.style.top='50%';
+
+  // Mouse/touch follow
+  area.onmousemove=e=>{
+    if(!l6Active)return;
+    const r=area.getBoundingClientRect();
+    l6PlayerX=Math.max(5,Math.min(90,(e.clientX-r.left)/r.width*100));
+    l6PlayerY=Math.max(5,Math.min(85,(e.clientY-r.top)/r.height*100));
+    player.style.left=l6PlayerX+'%';
+    player.style.top=l6PlayerY+'%';
+  };
+  area.ontouchmove=e=>{
+    e.preventDefault();
+    if(!l6Active)return;
+    const r=area.getBoundingClientRect();
+    const t=e.touches[0];
+    l6PlayerX=Math.max(5,Math.min(90,(t.clientX-r.left)/r.width*100));
+    l6PlayerY=Math.max(5,Math.min(85,(t.clientY-r.top)/r.height*100));
+    player.style.left=l6PlayerX+'%';
+    player.style.top=l6PlayerY+'%';
+  };
+
+  startHUD('Yün Topu Avı 🧶',45,true);
+
+  // Spawn balls
+  clearInterval(l6Interval);
+  l6Interval=setInterval(()=>{
+    if(!l6Active)return;
+    const ball=document.createElement('div');
+    ball.className='l6-ball';
+    ball.textContent='🧶';
+    ball.style.cssText=`position:absolute;font-size:1.8rem;user-select:none;transition:none;`;
+    const startSide=Math.floor(Math.random()*4);
+    let bx,by,vx,vy;
+    const spd=1.5+Math.random()*2;
+    if(startSide===0){bx=Math.random()*80+10;by=-5;vx=(Math.random()-.5)*spd;vy=spd;}
+    else if(startSide===1){bx=105;by=Math.random()*70+10;vx=-spd;vy=(Math.random()-.5)*spd;}
+    else if(startSide===2){bx=Math.random()*80+10;by=105;vx=(Math.random()-.5)*spd;vy=-spd;}
+    else{bx=-5;by=Math.random()*70+10;vx=spd;vy=(Math.random()-.5)*spd;}
+    ball.dataset.bx=bx;ball.dataset.by=by;ball.dataset.vx=vx;ball.dataset.vy=vy;
+    ball.style.left=bx+'%';ball.style.top=by+'%';
+    area.appendChild(ball);
+    l6Balls.push(ball);
+  },600);
+
+  cancelAnimationFrame(l6AnimLoop);
+  let l6Acc=0,l6Last=performance.now();
+  function l6Loop(now){
+    if(!l6Active)return;
+    l6Acc+=Math.min(100,Math.max(0,now-l6Last));l6Last=now;
+    while(l6Acc>=STEP&&l6Active){l6Acc-=STEP;l6Update();}
+    if(l6Active)l6AnimLoop=requestAnimationFrame(l6Loop);
+  }
+  function l6Update(){
+    // WASD move
+    const spd=0.8;
+    if(l6Keys.left)l6PlayerX=Math.max(2,l6PlayerX-spd);
+    if(l6Keys.right)l6PlayerX=Math.min(90,l6PlayerX+spd);
+    if(l6Keys.up)l6PlayerY=Math.max(2,l6PlayerY-spd);
+    if(l6Keys.down)l6PlayerY=Math.min(88,l6PlayerY+spd);
+    player.style.left=l6PlayerX+'%';
+    player.style.top=l6PlayerY+'%';
+
+    // Move balls
+    l6Balls=l6Balls.filter(ball=>{
+      let bx=parseFloat(ball.dataset.bx);
+      let by=parseFloat(ball.dataset.by);
+      let vx=parseFloat(ball.dataset.vx);
+      let vy=parseFloat(ball.dataset.vy);
+      bx+=vx*0.3;by+=vy*0.3;
+      // bounce off walls
+      if(bx<0||bx>95){vx=-vx;bx=Math.max(0,Math.min(95,bx));}
+      if(by<0||by>90){vy=-vy;by=Math.max(0,Math.min(90,by));}
+      ball.dataset.bx=bx;ball.dataset.by=by;ball.dataset.vx=vx;ball.dataset.vy=vy;
+      ball.style.left=bx+'%';ball.style.top=by+'%';
+      // collision
+      const dx=bx-l6PlayerX,dy=by-l6PlayerY;
+      if(Math.sqrt(dx*dx+dy*dy)<7){
+        ball.remove();
+        l6Caught6++;
+        document.getElementById('l6-caught').textContent=l6Caught6;
+        setScore(l6Caught6);
+        // angry if few caught vs time
+        if(l6Caught6>=25){
+          l6Active=false;stopHUD();
+          clearInterval(l6Interval);cancelAnimationFrame(l6AnimLoop);
+          const stars=timeLeft>30?3:timeLeft>15?2:1;
+          showResult(true,'25 yün topu topladın! 🧶🎉',stars);
+        }
+        return false;
+      }
+      return true;
+    });
+  }
+  l6AnimLoop=requestAnimationFrame(l6Loop);
+}
+function endL6(){
+  l6Active=false;clearInterval(l6Interval);cancelAnimationFrame(l6AnimLoop);
+  if(l6Caught6>=25)showResult(true,'Süre bitti ama 25 topu topladın! 🧶',1);
+  else showResult(false,`Sadece ${l6Caught6}/25 top topladın. Tekrar dene! 🧶`);
+}
+
+// =========================================
+// ===== LEVEL 7: RİTİM OYUNU =====
+// =========================================
+let l7Active=false,l7Caught=0,l7Interval=null,l7NoteInterval=null;
+const L7_ICONS=['❤️','🎵','🐾'];
+let l7Notes=[];
+
+function initL7(){
+  l7Active=true;l7Caught=0;l7Notes=[];
+  document.getElementById('l7-caught').textContent='0';
+  document.getElementById('l7-feedback').style.opacity='0';
+  document.getElementById('l7-cat').style.transform='translateX(-50%) scale(1)';
+  document.getElementById('l7-notes-container').innerHTML='';
+  startHUD('Şarkı Söyle 🎵',30,true);
+
+  clearInterval(l7NoteInterval);
+  l7NoteInterval=setInterval(()=>{
+    if(!l7Active)return;
+    const lane=Math.floor(Math.random()*3);
+    const note=document.createElement('div');
+    note.className='l7-note';
+    note.textContent=L7_ICONS[lane];
+    note.dataset.lane=lane;
+    note.style.cssText=`position:absolute;font-size:2.2rem;top:-40px;transition:top 1.8s linear;`;
+    // Position based on lane
+    const pcts=['20%','45%','70%'];
+    note.style.left=pcts[lane];
+    document.getElementById('l7-notes-container').appendChild(note);
+    l7Notes.push({el:note,lane,hit:false});
+    setTimeout(()=>{note.style.top='85%';},50);
+    setTimeout(()=>{
+      if(!note.dataset.hit){note.remove();l7Notes=l7Notes.filter(n=>n.el!==note);}
+    },2200);
+  },900);
+}
+
+function l7HitZone(lane){
+  if(!l7Active)return;
+  // Find closest note in this lane that's in hit range
+  const area=document.getElementById('l7-area');
+  const areaH=area.offsetHeight;
+  let hit=false;
+  l7Notes.forEach(n=>{
+    if(n.hit||n.lane!==lane)return;
+    const rect=n.el.getBoundingClientRect();
+    const areaRect=area.getBoundingClientRect();
+    const noteBottom=rect.bottom-areaRect.top;
+    if(noteBottom>areaH*0.6&&noteBottom<areaH){
+      n.hit=true;n.el.dataset.hit='1';
+      n.el.style.transform='scale(1.5)';n.el.style.opacity='0';
+      setTimeout(()=>n.el.remove(),300);
+      l7Notes=l7Notes.filter(x=>x!==n);
+      l7Caught++;
+      document.getElementById('l7-caught').textContent=l7Caught;
+      setScore(l7Caught);
+      const fb=document.getElementById('l7-feedback');
+      fb.textContent=noteBottom>areaH*0.75?'PERFECT! ✨':'GOOD! 👍';
+      fb.style.opacity='1';
+      setTimeout(()=>fb.style.opacity='0',600);
+      const catEl=document.getElementById('l7-cat');
+      catEl.style.transform='translateX(-50%) scale(1.3) rotate(-5deg)';
+      setTimeout(()=>catEl.style.transform='translateX(-50%) scale(1)',300);
+      hit=true;
+      if(l7Caught>=20){
+        l7Active=false;stopHUD();clearInterval(l7NoteInterval);
+        const stars=timeLeft>20?3:timeLeft>10?2:1;
+        showResult(true,`${catName()} dans etti! 20 ritim yakaladın! 🎵🐱`,stars);
+      }
+    }
+  });
+  if(!hit){
+    const fb=document.getElementById('l7-feedback');
+    fb.textContent='MISS 😿';fb.style.color='#FF4757';fb.style.opacity='1';
+    setTimeout(()=>{fb.style.opacity='0';fb.style.color='#FFD700';},600);
+  }
+}
+function endL7(){
+  l7Active=false;clearInterval(l7NoteInterval);
+  if(l7Caught>=20)showResult(true,'Süre doldu ama kazandın! 🎵',1);
+  else showResult(false,`Sadece ${l7Caught}/20 ritim yakaladın. Tekrar dene! 🎵`);
+}
+
+// =========================================
+// ===== LEVEL 8: ANI ALBÜMÜ MEMORY =====
+// =========================================
+let l8Active=false,l8Matched=0,l8Flipped=[],l8CanFlip=true,l8Interval=null;
+const L8_CARDS=[
+  {id:0,emoji:'💖',word:'Kalp'},{id:1,emoji:'🌸',word:'Çiçek'},
+  {id:2,emoji:'🌷',word:'Lale'},{id:3,emoji:'🎀',word:'Fiyonk'},
+  {id:4,emoji:'✨',word:'Pırıltı'},{id:5,emoji:'🌙',word:'Ay'},
+  {id:6,emoji:'🐾',word:'Pati'},{id:7,emoji:'🧁',word:'Kek'}
+];
+
+function initL8(){
+  l8Active=true;l8Matched=0;l8Flipped=[];l8CanFlip=true;
+  document.getElementById('l8-matched').textContent='0';
+  document.getElementById('l8-status').textContent='Kartları çevir!';
+  startHUD('Anı Albümü 🃏',60,true);
+  // Build 16 cards (8 pairs)
+  const pairs=[...L8_CARDS,...L8_CARDS].map((c,i)=>({...c,uid:i}));
+  // Shuffle
+  for(let i=pairs.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pairs[i],pairs[j]]=[pairs[j],pairs[i]];}
+  const grid=document.getElementById('l8-grid');
+  grid.innerHTML='';
+  pairs.forEach(card=>{
+    const el=document.createElement('div');
+    el.className='l8-card';
+    el.dataset.id=card.id;el.dataset.uid=card.uid;
+    el.style.cssText=`background:var(--pink);border-radius:12px;aspect-ratio:1;display:flex;align-items:center;justify-content:center;cursor:pointer;user-select:none;flex-direction:column;font-family:'Nunito',sans-serif;font-weight:700;color:var(--navy);`;
+    el.innerHTML='<div style="font-size:2.2rem">❓</div>';
+    el.dataset.revealed='0';
+    el.onclick=()=>l8FlipCard(el,card);
+    grid.appendChild(el);
+  });
+}
+
+function l8FlipCard(el,card){
+  if(!l8Active||!l8CanFlip)return;
+  if(el.dataset.revealed==='1')return;
+  el.dataset.revealed='1';
+  el.innerHTML=`<div style="font-size:2.2rem">${card.emoji}</div><div style="font-size:.85rem;font-weight:700;color:var(--navy);margin-top:2px">${card.word}</div>`;
+  el.style.background='var(--yellow-light)';
+  l8Flipped.push({el,card});
+  if(l8Flipped.length===2){
+    l8CanFlip=false;
+    const [a,b]=l8Flipped;
+    if(a.card.id===b.card.id){
+      // Match!
+      setTimeout(()=>{
+        a.el.style.background='#C8E6C9';b.el.style.background='#C8E6C9';
+        a.el.style.pointerEvents='none';b.el.style.pointerEvents='none';
+        l8Matched++;
+        document.getElementById('l8-matched').textContent=l8Matched;
+        document.getElementById('l8-status').textContent='Eşleşti! 🎉';
+        setScore(l8Matched);
+        l8Flipped=[];l8CanFlip=true;
+        if(l8Matched>=8){
+          l8Active=false;stopHUD();
+          const stars=timeLeft>45?3:timeLeft>20?2:1;
+          showResult(true,'Tüm çiftleri buldun! 🃏💖',stars);
+        }
+      },500);
+    } else {
+      // No match
+      document.getElementById('l8-status').textContent='Eşleşmedi 😿';
+      setTimeout(()=>{
+        a.el.innerHTML='<div style="font-size:2.2rem">❓</div>';
+        b.el.innerHTML='<div style="font-size:2.2rem">❓</div>';
+        a.el.style.background='var(--pink)';b.el.style.background='var(--pink)';
+        a.el.dataset.revealed='0';b.el.dataset.revealed='0';
+        l8Flipped=[];l8CanFlip=true;
+        document.getElementById('l8-status').textContent='Devam et!';
+      },1000);
+    }
+  }
+}
+function endL8(){
+  l8Active=false;
+  if(l8Matched>=8)showResult(true,'Tümünü buldun! 🃏',2);
+  else showResult(false,`${l8Matched}/8 çift bulundu. Tekrar dene! 🃏`);
+}
+
+// =========================================
+// ===== LEVEL 9: PLATFORMER SELDEN KAÇ =====
+// =========================================
+let l9Active=false,l9AnimFrame=null;
+let l9Keys={left:false,right:false,up:false};
+let l9HeartsCollected=0;
+
+function initL9(){
+  l9Active=true;l9HeartsCollected=0;
+  document.getElementById('l9-hearts').textContent='0';
+  document.getElementById('l9-status').textContent='Selden kaç! 🌊';
+  startHUD('Selden Kaç 🌊',0,false);
+  cancelAnimationFrame(l9AnimFrame);
+
+  const canvas=document.getElementById('l9-canvas');
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width,H=canvas.height;
+
+  // World
+  const WORLD_W=1200;
+  const platforms=[
+    {x:0,y:320,w:200,h:20},{x:150,y:260,w:180,h:20},{x:280,y:200,w:160,h:20},
+    {x:400,y:250,w:150,h:20},{x:520,y:180,w:160,h:20},{x:650,y:130,w:180,h:20},
+    {x:800,y:200,w:160,h:20},{x:920,y:150,w:180,h:20},{x:1060,y:100,w:140,h:20},
+    {x:0,y:340,w:WORLD_W,h:20}, // ground
+  ];
+  const heartPos=[
+    {x:80,y:295},{x:220,y:235},{x:340,y:175},{x:460,y:225},
+    {x:580,y:155},{x:700,y:105},{x:850,y:175},{x:960,y:125},
+    {x:1100,y:75},{x:1150,y:75}
+  ];
+  let hearts=heartPos.map((p,i)=>({...p,collected:false,id:i}));
+
+  let player={x:30,y:280,w:28,h:28,vx:0,vy:0,onGround:false};
+  let cameraX=0;
+  let waterX=-50; // water starts off screen left
+
+  let l9Acc=0,l9Last=performance.now();
+  function l9Loop(now){
+    if(!l9Active)return;
+    l9Acc+=Math.min(100,Math.max(0,now-l9Last));l9Last=now;
+    while(l9Acc>=STEP&&l9Active){l9Acc-=STEP;l9Update();}
+    if(!l9Active)return;
+    l9Draw();
+    l9AnimFrame=requestAnimationFrame(l9Loop);
+  }
+  function l9Update(){
+    // Input
+    if(l9Keys.left)player.vx=-3;
+    else if(l9Keys.right)player.vx=3;
+    else player.vx*=0.8;
+
+    if(l9Keys.up&&player.onGround){player.vy=-9;player.onGround=false;}
+
+    // Gravity
+    player.vy+=0.4;
+    player.x+=player.vx;
+    player.y+=player.vy;
+    player.onGround=false;
+
+    // Platform collision
+    platforms.forEach(p=>{
+      if(player.x+player.w>p.x&&player.x<p.x+p.w&&
+         player.y+player.h>p.y&&player.y+player.h<p.y+p.h+15&&player.vy>=0){
+        player.y=p.y-player.h;player.vy=0;player.onGround=true;
+      }
+    });
+
+    // Clamp
+    player.x=Math.max(0,Math.min(WORLD_W-player.w,player.x));
+    if(player.y>H+50){player.y=50;player.vy=0;}// fall reset
+
+    // Camera follow
+    cameraX=Math.max(0,Math.min(WORLD_W-W,player.x-W/2+player.w/2));
+
+    // Water advances
+    waterX+=0.4;
+    if(waterX>player.x-10){
+      // Caught by water!
+      l9Active=false;cancelAnimationFrame(l9AnimFrame);stopHUD();
+      showResult(false,'Sel seni yakaladı! Tekrar dene! 🌊');
+      return;
+    }
+
+    // Heart collection
+    hearts.forEach(h=>{
+      if(!h.collected&&Math.abs(player.x-h.x)<25&&Math.abs(player.y-h.y)<25){
+        h.collected=true;l9HeartsCollected++;
+        document.getElementById('l9-hearts').textContent=l9HeartsCollected;
+        setScore(l9HeartsCollected);
+        if(l9HeartsCollected>=10){
+          l9Active=false;cancelAnimationFrame(l9AnimFrame);stopHUD();
+          showResult(true,'Tüm kalpleri topladın! Harika kaçış! 🌊💖',3);
+          return;
+        }
+      }
+    });
+
+  }
+  function l9Draw(){
+    ctx.clearRect(0,0,W,H);
+
+    // Sky gradient
+    const sky=ctx.createLinearGradient(0,0,0,H);
+    sky.addColorStop(0,'#87CEEB');sky.addColorStop(1,'#E0F4FF');
+    ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
+
+    ctx.save();ctx.translate(-cameraX,0);
+
+    // Platforms
+    platforms.forEach(p=>{
+      ctx.fillStyle='#8B6F3E';
+      ctx.fillRect(p.x,p.y,p.w,p.h);
+      ctx.fillStyle='#5D8A4A';
+      ctx.fillRect(p.x,p.y-4,p.w,6);
+    });
+
+    // Hearts
+    hearts.forEach(h=>{
+      if(!h.collected){
+        ctx.font='20px serif';ctx.textAlign='center';
+        ctx.fillText('💖',h.x+10,h.y);
+      }
+    });
+
+    // Player (cloud/cat emoji)
+    ctx.font='28px serif';ctx.textAlign='center';
+    ctx.fillText('🐱',player.x+player.w/2,player.y+player.h);
+
+    // Water
+    ctx.fillStyle='rgba(30,144,255,0.7)';
+    ctx.fillRect(waterX-cameraX,0,80,H);
+    ctx.fillStyle='rgba(0,100,255,0.5)';
+    ctx.fillRect(waterX-cameraX+80,0,30,H);
+    // Wave on top
+    ctx.fillStyle='rgba(100,200,255,0.8)';
+    ctx.beginPath();
+    ctx.moveTo(waterX-cameraX,0);
+    const wt=Date.now()/200;
+    for(let wx=waterX-cameraX;wx<waterX-cameraX+120;wx+=5){
+      ctx.lineTo(wx,20+Math.sin(wx/15+wt)*8);
+    }
+    ctx.lineTo(waterX-cameraX+120,0);ctx.closePath();ctx.fill();
+
+    ctx.restore();
+
+    // HUD overlay
+    ctx.fillStyle='rgba(255,255,255,0.85)';
+    ctx.fillRect(0,0,W,28);
+    ctx.fillStyle='#1a1a4e';ctx.font='bold 13px Nunito,sans-serif';ctx.textAlign='left';
+    ctx.fillText(`💖 ${l9HeartsCollected}/10`,8,18);
+    ctx.textAlign='right';
+    ctx.fillText('WASD/Yön tuşları ile oyna',W-8,18);
+  }
+  l9AnimFrame=requestAnimationFrame(l9Loop);
+}
+function endL9(){
+  l9Active=false;cancelAnimationFrame(l9AnimFrame);
+  if(l9HeartsCollected>=10)showResult(true,'Harika! Tüm kalpler toplandı! 🌊',2);
+  else showResult(false,`${l9HeartsCollected}/10 kalp toplandı. Tekrar dene! 🌊`);
+}
+
+initStars();
+
+// Autosave autoload
+const hadAutosave=loadAutosave();
+applyCatName();
+refreshTitleButtons();
+if(hadAutosave){
+  showMap();
+  showToast('Kaldığın yerden devam ediyorsun! 🐱💖');
+}
+</script>
+
+<!-- ===== SCREEN: HAYAL EVİM ===== -->
+<div class="screen" id="screen-hayali" style="overflow-y:auto;background:linear-gradient(160deg,#F3E8FF,#EDE9FE);">
+  <div style="max-width:420px;margin:0 auto;padding:.5rem .8rem 4rem;">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:.5rem 0 .4rem">
+      <div style="font-family:'Fredoka One',cursive;font-size:1.4rem;color:#7C3AED">🏡 Hayal Evim</div>
+      <button class="btn btn-navy btn-sm" onclick="showScreen('screen-title')">🏠 Menü</button>
+    </div>
+    <!-- Room selector -->
+    <div id="hayali-rooms" style="display:flex;gap:.4rem;margin-bottom:.5rem;overflow-x:auto">
+      <button class="h-room-btn active" data-room="garden" onclick="hayaliSwitchRoom('garden')">🌳 Bahçe</button>
+      <button class="h-room-btn" data-room="living" onclick="hayaliSwitchRoom('living')">🛋️ Salon</button>
+      <button class="h-room-btn" data-room="kitchen" onclick="hayaliSwitchRoom('kitchen')">🍳 Mutfak</button>
+      <button class="h-room-btn" data-room="bedroom" onclick="hayaliSwitchRoom('bedroom')">🛏️ Yatak Odası</button>
+      <button class="h-room-btn" data-room="bathroom" onclick="hayaliSwitchRoom('bathroom')">🛁 Banyo</button>
+    </div>
+    <!-- Room canvas -->
+    <div id="hayali-room-canvas" style="background:#fff;border-radius:20px;min-height:240px;position:relative;overflow:hidden;border:2.5px solid #DDD6FE;margin-bottom:.5rem;">
+      <div id="hayali-room-bg" style="width:100%;height:240px;position:relative"></div>
+      <div id="hayali-items-layer" style="position:absolute;inset:0"></div>
+      <div id="hayali-cat-player" style="position:absolute;bottom:20px;left:50%;transform:translateX(-50%);font-size:2.5rem;cursor:pointer;z-index:20" title="Aşağıdaki butonla kedinle gez!">🐱</div>
+    </div>
+    <!-- Walk mode toggle -->
+    <div style="display:flex;gap:.5rem;margin-bottom:.5rem">
+      <button id="hayali-walk-btn" class="btn btn-secondary btn-sm" onclick="hayaliToggleWalk()" style="flex:1">🐾 Kedinle Gez (WASD)</button>
+      <button class="btn btn-primary btn-sm" onclick="hayaliSave()" style="flex:1">💾 Odayı Kaydet</button>
+    </div>
+    <!-- Items panel -->
+    <div style="font-family:'Fredoka One',cursive;color:#7C3AED;font-size:1rem;margin-bottom:.3rem">🎨 Eşyalar — Sürükle & Bırak</div>
+    <div id="hayali-items-panel" style="display:flex;flex-wrap:wrap;gap:.4rem;max-height:220px;overflow-y:auto;background:#F5F3FF;border-radius:16px;padding:.6rem"></div>
+  </div>
+</div>
+
+<script>
+// =========================================
+// ===== HAYAL EVİM (DREAM HOUSE) =====
+// =========================================
+const HAYALI_ITEMS = {
+  garden: [
+    {id:'g1',emoji:'🌳',name:'Büyük Ağaç'},{id:'g2',emoji:'🌸',name:'Çiçek Tarhı'},
+    {id:'g3',emoji:'🪴',name:'Saksı Çiçeği'},{id:'g4',emoji:'⛲',name:'Çeşme'},
+    {id:'g5',emoji:'🪑',name:'Bahçe Sandalyesi'},{id:'g6',emoji:'🛋️',name:'Dış Mekân Koltuk'},
+    {id:'g7',emoji:'🔦',name:'Bahçe Feneri'},{id:'g8',emoji:'🪟',name:'Salıncak'},
+    {id:'g9',emoji:'🌿',name:'Çalı'},{id:'g10',emoji:'🦋',name:'Kelebek Tüneli'}
+  ],
+  living: [
+    {id:'l1',emoji:'🛋️',name:'Koltuk'},{id:'l2',emoji:'📺',name:'Televizyon'},
+    {id:'l3',emoji:'🪴',name:'İç Saksı'},{id:'l4',emoji:'🖼️',name:'Tablo'},
+    {id:'l5',emoji:'💡',name:'Abajur'},{id:'l6',emoji:'📚',name:'Kitaplık'},
+    {id:'l7',emoji:'🪞',name:'Ayna'},{id:'l8',emoji:'🎵',name:'Müzik Seti'}
+  ],
+  kitchen: [
+    {id:'k1',emoji:'☕',name:'Kahve Makinesi'},{id:'k2',emoji:'🍽️',name:'Yemek Masası'},
+    {id:'k3',emoji:'🌷',name:'Vazo'},{id:'k4',emoji:'🧺',name:'Çamaşır Sepeti'},
+    {id:'k5',emoji:'🪟',name:'Mutfak Penceresi'},{id:'k6',emoji:'🍀',name:'Bitki Rafı'},
+    {id:'k7',emoji:'🫖',name:'Çaydanlık'},{id:'k8',emoji:'🏺',name:'Dekor Vazo'}
+  ],
+  bedroom: [
+    {id:'b1',emoji:'🛏️',name:'Büyük Yatak'},{id:'b2',emoji:'🪞',name:'Makyaj Aynası'},
+    {id:'b3',emoji:'📚',name:'Komodin'},{id:'b4',emoji:'💐',name:'Çiçek Buketi'},
+    {id:'b5',emoji:'🌙',name:'Gece Lambası'},{id:'b6',emoji:'🎀',name:'Dekor Yastık'},
+    {id:'b7',emoji:'🖼️',name:'Fotoğraf Çerçevesi'},{id:'b8',emoji:'🧸',name:'Oyuncak Ayı'}
+  ],
+  bathroom: [
+    {id:'bth1',emoji:'🛁',name:'Küvet'},{id:'bth2',emoji:'🪴',name:'Banyo Bitkisi'},
+    {id:'bth3',emoji:'🕯️',name:'Mum'},{id:'bth4',emoji:'🧴',name:'Losyon Set'},
+    {id:'bth5',emoji:'🪞',name:'Banyo Aynası'},{id:'bth6',emoji:'🌺',name:'Çiçek Aranjmanı'}
+  ]
+};
+
+// Cat corner items (shared across all rooms)
+const HAYALI_CAT_ITEMS = [
+  {id:'cat1',emoji:'🐾',name:'Pati Yastığı'},{id:'cat2',emoji:'🎾',name:'Oyuncak Top'},
+  {id:'cat3',emoji:'🧶',name:'Yün Topu'},{id:'cat4',emoji:'🏠',name:'Kedi Evi'},
+  {id:'cat5',emoji:'🐟',name:'Mama Kabı'},{id:'cat6',emoji:'🪵',name:'Tırmalama Tahtası'},
+];
+
+let hayaliCurrentRoom='garden';
+let hayaliWalkMode=false;
+let hayaliWalkX=50,hayaliWalkY=180;
+let hayaliWalkInterval=null;
+let hayaliWalkKeys={left:false,right:false,up:false,down:false};
+let hayaliData={}; // room -> [{id, emoji, x, y}]
+let hayaliDragEl=null,hayaliDragOffX=0,hayaliDragOffY=0;
+
+const ROOM_BG={
+  garden:'linear-gradient(180deg,#87CEEB 0%,#90EE90 60%,#8B6F3E 100%)',
+  living:'linear-gradient(180deg,#FFF8E7 0%,#F5F0E8 100%)',
+  kitchen:'linear-gradient(180deg,#F0FFF0 0%,#E8F5E9 100%)',
+  bedroom:'linear-gradient(180deg,#FFF0F5 0%,#FCE4EC 100%)',
+  bathroom:'linear-gradient(180deg,#E0F7FA 0%,#B2EBF2 100%)',
+};
+
+function hayaliSwitchRoom(room){
+  hayaliCurrentRoom=room;
+  document.querySelectorAll('.h-room-btn').forEach(b=>b.classList.toggle('active',b.dataset.room===room));
+  renderHayaliRoom();
+  renderHayaliItems();
+}
+
+function renderHayaliRoom(){
+  const bg=document.getElementById('hayali-room-bg');
+  bg.style.background=ROOM_BG[hayaliCurrentRoom]||'#fff';
+  // Room label
+  const roomNames={garden:'🌳 Bahçe',living:'🛋️ Salon',kitchen:'🍳 Mutfak',bedroom:'🛏️ Yatak Odası',bathroom:'🛁 Banyo'};
+  bg.innerHTML=`<div style="position:absolute;bottom:8px;right:12px;font-size:.75rem;color:rgba(0,0,0,.25);font-weight:700">${roomNames[hayaliCurrentRoom]||''}</div>`;
+
+  // Placed items
+  const layer=document.getElementById('hayali-items-layer');
+  layer.innerHTML='';
+  const items=hayaliData[hayaliCurrentRoom]||[];
+  items.forEach((it,idx)=>{
+    const el=document.createElement('div');
+    el.style.cssText=`position:absolute;font-size:2rem;left:${it.x}px;top:${it.y}px;cursor:move;user-select:none;z-index:5;`;
+    el.textContent=it.emoji;
+    el.title=it.name||'';
+    // Remove on double-click
+    el.ondblclick=()=>{
+      hayaliData[hayaliCurrentRoom]=hayaliData[hayaliCurrentRoom].filter((_,i)=>i!==idx);
+      renderHayaliRoom();
+    };
+    makeDraggableInRoom(el,idx);
+    layer.appendChild(el);
+  });
+}
+
+function makeDraggableInRoom(el,idx){
+  const layer=document.getElementById('hayali-items-layer');
+  el.onmousedown=e=>{
+    e.preventDefault();
+    const r=layer.getBoundingClientRect();
+    hayaliDragOffX=e.clientX-r.left-parseFloat(el.style.left);
+    hayaliDragOffY=e.clientY-r.top-parseFloat(el.style.top);
+    function move(me){
+      const nx=me.clientX-r.left-hayaliDragOffX;
+      const ny=me.clientY-r.top-hayaliDragOffY;
+      el.style.left=Math.max(0,Math.min(layer.offsetWidth-40,nx))+'px';
+      el.style.top=Math.max(0,Math.min(layer.offsetHeight-40,ny))+'px';
+      hayaliData[hayaliCurrentRoom][idx].x=parseFloat(el.style.left);
+      hayaliData[hayaliCurrentRoom][idx].y=parseFloat(el.style.top);
+    }
+    function up(){document.removeEventListener('mousemove',move);document.removeEventListener('mouseup',up);}
+    document.addEventListener('mousemove',move);
+    document.addEventListener('mouseup',up);
+  };
+  el.ontouchstart=e=>{
+    e.preventDefault();
+    const r=layer.getBoundingClientRect();
+    const t=e.touches[0];
+    hayaliDragOffX=t.clientX-r.left-parseFloat(el.style.left);
+    hayaliDragOffY=t.clientY-r.top-parseFloat(el.style.top);
+    function move(te){
+      const tt=te.touches[0];
+      const nx=tt.clientX-r.left-hayaliDragOffX;
+      const ny=tt.clientY-r.top-hayaliDragOffY;
+      el.style.left=Math.max(0,Math.min(layer.offsetWidth-40,nx))+'px';
+      el.style.top=Math.max(0,Math.min(layer.offsetHeight-40,ny))+'px';
+      hayaliData[hayaliCurrentRoom][idx].x=parseFloat(el.style.left);
+      hayaliData[hayaliCurrentRoom][idx].y=parseFloat(el.style.top);
+    }
+    function up(){el.removeEventListener('touchmove',move);el.removeEventListener('touchend',up);}
+    el.addEventListener('touchmove',move,{passive:false});el.addEventListener('touchend',up);
+  };
+}
+
+function renderHayaliItems(){
+  const panel=document.getElementById('hayali-items-panel');
+  panel.innerHTML='';
+  const roomItems=HAYALI_ITEMS[hayaliCurrentRoom]||[];
+  const all=[...roomItems,...HAYALI_CAT_ITEMS];
+  all.forEach(item=>{
+    const btn=document.createElement('button');
+    btn.style.cssText=`background:#fff;border:2px solid #DDD6FE;border-radius:12px;padding:.4rem .5rem;font-size:1.4rem;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:.15rem;min-width:56px;font-family:'Nunito',sans-serif;font-size:.6rem;color:#5B21B6;font-weight:700;`;
+    btn.innerHTML=`<span style="font-size:1.6rem">${item.emoji}</span><span>${item.name}</span>`;
+    btn.title='Eklemek için tıkla';
+    btn.onclick=()=>{
+      if(!hayaliData[hayaliCurrentRoom])hayaliData[hayaliCurrentRoom]=[];
+      hayaliData[hayaliCurrentRoom].push({...item,x:Math.random()*160+40,y:Math.random()*100+40});
+      renderHayaliRoom();
+      showToast('✅ '+item.name+' eklendi!');
+    };
+    panel.appendChild(btn);
+  });
+}
+
+function hayaliToggleWalk(){
+  hayaliWalkMode=!hayaliWalkMode;
+  const btn=document.getElementById('hayali-walk-btn');
+  const catEl=document.getElementById('hayali-cat-player');
+  if(hayaliWalkMode){
+    btn.textContent='⏹️ Gezmeyi Durdur';
+    btn.style.background='linear-gradient(135deg,#FF4757,#FF6B81)';
+    catEl.style.display='block';
+    showToast('WASD / yön tuşları ile gez!');
+    clearInterval(hayaliWalkInterval);
+    hayaliWalkInterval=setInterval(()=>{
+      const layer=document.getElementById('hayali-items-layer');
+      if(!layer)return;
+      const spd=3;
+      if(hayaliWalkKeys.left)hayaliWalkX=Math.max(0,hayaliWalkX-spd);
+      if(hayaliWalkKeys.right)hayaliWalkX=Math.min(layer.offsetWidth-40,hayaliWalkX+spd);
+      if(hayaliWalkKeys.up)hayaliWalkY=Math.max(0,hayaliWalkY-spd);
+      if(hayaliWalkKeys.down)hayaliWalkY=Math.min(layer.offsetHeight-40,hayaliWalkY+spd);
+      catEl.style.left=hayaliWalkX+'px';
+      catEl.style.top=hayaliWalkY+'px';
+      catEl.style.transform='none';
+      catEl.style.bottom='auto';
+    },16);
+  } else {
+    btn.textContent='🐾 Kedinle Gez (WASD)';
+    btn.style.background='';
+    clearInterval(hayaliWalkInterval);
+    catEl.style.left='';catEl.style.top='';
+    catEl.style.transform='translateX(-50%)';
+    catEl.style.bottom='20px';
+  }
+}
+
+function hayaliSave(){
+  try{localStorage.setItem('catified_hayali',JSON.stringify(hayaliData));showToast('🏡 Ev kaydedildi!');}
+  catch(e){showToast('Kayıt hatası!');}
+}
+
+function initHayali(){
+  // Load saved data
+  try{
+    const saved=localStorage.getItem('catified_hayali');
+    if(saved)hayaliData=JSON.parse(saved);
+  }catch(e){hayaliData={};}
+  hayaliCurrentRoom='garden';
+  hayaliWalkMode=false;
+  clearInterval(hayaliWalkInterval);
+  document.querySelectorAll('.h-room-btn').forEach(b=>b.classList.toggle('active',b.dataset.room==='garden'));
+  const catEl=document.getElementById('hayali-cat-player');
+  if(catEl){catEl.style.left='';catEl.style.top='';catEl.style.transform='translateX(-50%)';catEl.style.bottom='20px';}
+  renderHayaliRoom();
+  renderHayaliItems();
+}
+
+// Hayali keyboard walk support
+document.addEventListener('keydown',e=>{
+  if(hayaliWalkMode){
+    if(e.code==='KeyA'||e.code==='ArrowLeft')hayaliWalkKeys.left=true;
+    if(e.code==='KeyD'||e.code==='ArrowRight')hayaliWalkKeys.right=true;
+    if(e.code==='KeyW'||e.code==='ArrowUp'){hayaliWalkKeys.up=true;e.preventDefault();}
+    if(e.code==='KeyS'||e.code==='ArrowDown'){hayaliWalkKeys.down=true;e.preventDefault();}
+  }
+});
+document.addEventListener('keyup',e=>{
+  if(e.code==='KeyA'||e.code==='ArrowLeft')hayaliWalkKeys.left=false;
+  if(e.code==='KeyD'||e.code==='ArrowRight')hayaliWalkKeys.right=false;
+  if(e.code==='KeyW'||e.code==='ArrowUp')hayaliWalkKeys.up=false;
+  if(e.code==='KeyS'||e.code==='ArrowDown')hayaliWalkKeys.down=false;
+});
+</script>
+
+<!-- CSS for Hayal Evim and new level elements -->
+<style>
+.h-room-btn{padding:.4rem .8rem;border:2px solid #DDD6FE;border-radius:20px;background:#fff;color:#7C3AED;font-family:'Nunito',sans-serif;font-weight:700;font-size:.8rem;cursor:pointer;white-space:nowrap;transition:all .15s;}
+.h-room-btn.active{background:#7C3AED;color:#fff;border-color:#7C3AED;}
+.l7-zone{width:60px;height:60px;background:rgba(255,255,255,.15);border:3px solid rgba(255,255,255,.4);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.8rem;cursor:pointer;transition:transform .1s,background .1s;user-select:none;}
+.l7-zone:active{transform:scale(.9);background:rgba(255,255,255,.35);}
+.l8-card{cursor:pointer;border-radius:12px;aspect-ratio:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:.1rem;user-select:none;}
+</style>
+</body>
+</html>
